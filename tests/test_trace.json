@@ -1,0 +1,13 @@
+{
+  "traceEvents": [
+    {"ph":"M","name":"process_name","pid":1,"ts":0,"args":{"name":"TestProcess"}},
+    {"ph":"M","name":"thread_name","pid":1,"tid":1,"ts":0,"args":{"name":"MainThread"}},
+    {"ph":"B","cat":"rendering","name":"DrawFrame","ts":1000,"pid":1,"tid":1,"args":{"frame":1}},
+    {"ph":"E","cat":"rendering","name":"DrawFrame","ts":2500,"pid":1,"tid":1},
+    {"ph":"X","cat":"gc","name":"GarbageCollect","ts":3000,"pid":1,"tid":1,"dur":800},
+    {"ph":"i","cat":"net","name":"RequestSent","ts":4200,"pid":1,"tid":1,"args":{"url":"http://example.com","size":512}},
+    {"ph":"C","cat":"memory","name":"HeapUsage","ts":5000,"pid":1,"tid":1,"id":1,"args":{"bytes":204800}},
+    {"ph":"b","cat":"ipc","name":"AsyncCall","ts":6000,"pid":1,"tid":1,"id":42},
+    {"ph":"e","cat":"ipc","name":"AsyncCall","ts":7500,"pid":1,"tid":1,"id":42}
+  ]
+}

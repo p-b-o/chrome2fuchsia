@@ -1,0 +1,2592 @@
+{
+  "traceEvents": [
+    {
+      "ph": "M",
+      "name": "process_name",
+      "pid": 1,
+      "ts": 0,
+      "args": {
+        "name": "BrowserProcess"
+      }
+    },
+    {
+      "ph": "M",
+      "name": "process_name",
+      "pid": 2,
+      "ts": 0,
+      "args": {
+        "name": "RendererProcess"
+      }
+    },
+    {
+      "ph": "M",
+      "name": "thread_name",
+      "pid": 1,
+      "tid": 1,
+      "ts": 0,
+      "args": {
+        "name": "Thread-1"
+      }
+    },
+    {
+      "ph": "M",
+      "name": "thread_name",
+      "pid": 1,
+      "tid": 2,
+      "ts": 0,
+      "args": {
+        "name": "Thread-2"
+      }
+    },
+    {
+      "ph": "M",
+      "name": "thread_name",
+      "pid": 1,
+      "tid": 3,
+      "ts": 0,
+      "args": {
+        "name": "Thread-3"
+      }
+    },
+    {
+      "ph": "M",
+      "name": "thread_name",
+      "pid": 2,
+      "tid": 4,
+      "ts": 0,
+      "args": {
+        "name": "Thread-4"
+      }
+    },
+    {
+      "ph": "M",
+      "name": "thread_name",
+      "pid": 2,
+      "tid": 5,
+      "ts": 0,
+      "args": {
+        "name": "Thread-5"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Leaf",
+      "ts": 1000.0,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 5,
+        "iteration": 0,
+        "srcline": "src/gpu.cc:141"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gc",
+      "name": "Step",
+      "ts": 1008.6733778070521,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 4,
+        "iteration": 0,
+        "srcline": "src/gc.cc:378"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Phase",
+      "ts": 1015.2108054496248,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 3,
+        "iteration": 0,
+        "srcline": "src/gpu.cc:457"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Stage",
+      "ts": 1028.39130345585,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 2,
+        "iteration": 0,
+        "srcline": "src/js.cc:217"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Frame",
+      "ts": 1033.8680436480768,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 1,
+        "iteration": 0,
+        "srcline": "src/rendering.cc:112"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "rendering",
+      "name": "InnerMark",
+      "ts": 1042.3579570489378,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "val": 0
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Frame",
+      "ts": 1049.1741068813376,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Stage",
+      "ts": 1062.5927828254169,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Phase",
+      "ts": 1078.3330770192529,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gc",
+      "name": "Step",
+      "ts": 1093.8529516231065,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Leaf",
+      "ts": 1105.1457489375314,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Leaf",
+      "ts": 1145.2296058787092,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 5,
+        "iteration": 1,
+        "srcline": "src/gpu.cc:217"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gc",
+      "name": "Step",
+      "ts": 1155.333363626479,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 4,
+        "iteration": 1,
+        "srcline": "src/gc.cc:111"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "net",
+      "name": "Phase",
+      "ts": 1174.6915597095808,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 3,
+        "iteration": 1,
+        "srcline": "src/net.cc:53"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Stage",
+      "ts": 1181.082747360283,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 2,
+        "iteration": 1,
+        "srcline": "src/rendering.cc:184"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Frame",
+      "ts": 1198.795162855495,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 1,
+        "iteration": 1,
+        "srcline": "src/js.cc:136"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "js",
+      "name": "InnerMark",
+      "ts": 1215.9020869546107,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "val": 1
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Frame",
+      "ts": 1223.7399412481611,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Stage",
+      "ts": 1236.7833626199817,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "net",
+      "name": "Phase",
+      "ts": 1256.3800990796724,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gc",
+      "name": "Step",
+      "ts": 1267.0581147377977,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Leaf",
+      "ts": 1280.3387242068961,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Leaf",
+      "ts": 1336.3353867416183,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 5,
+        "iteration": 2,
+        "srcline": "src/gpu.cc:36"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gc",
+      "name": "Step",
+      "ts": 1342.0227524964532,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 4,
+        "iteration": 2,
+        "srcline": "src/gc.cc:396"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Phase",
+      "ts": 1351.3635719504848,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 3,
+        "iteration": 2,
+        "srcline": "src/rendering.cc:438"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Stage",
+      "ts": 1359.8554352459003,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 2,
+        "iteration": 2,
+        "srcline": "src/rendering.cc:195"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Frame",
+      "ts": 1369.0250392925516,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 1,
+        "iteration": 2,
+        "srcline": "src/gpu.cc:428"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "gpu",
+      "name": "InnerMark",
+      "ts": 1379.497521977103,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "val": 2
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Frame",
+      "ts": 1384.458969714038,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Stage",
+      "ts": 1392.6015751756104,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Phase",
+      "ts": 1401.6062425063471,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "gc",
+      "name": "Step",
+      "ts": 1420.6560613220345,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Leaf",
+      "ts": 1435.3765921007334,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "B",
+      "cat": "io",
+      "name": "Leaf",
+      "ts": 1474.6477166316813,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 5,
+        "iteration": 3,
+        "srcline": "src/io.cc:195"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Step",
+      "ts": 1483.6969340334456,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 4,
+        "iteration": 3,
+        "srcline": "src/gpu.cc:353"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Phase",
+      "ts": 1497.0511801900652,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 3,
+        "iteration": 3,
+        "srcline": "src/gpu.cc:167"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Stage",
+      "ts": 1514.6939589929123,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 2,
+        "iteration": 3,
+        "srcline": "src/rendering.cc:118"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "net",
+      "name": "Frame",
+      "ts": 1532.0209979030144,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 1,
+        "iteration": 3,
+        "srcline": "src/net.cc:206"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "net",
+      "name": "InnerMark",
+      "ts": 1541.03711104265,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "val": 3
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "net",
+      "name": "Frame",
+      "ts": 1544.7249737913405,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Stage",
+      "ts": 1563.8686195063663,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Phase",
+      "ts": 1582.0141339034562,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Step",
+      "ts": 1591.7343021154334,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "io",
+      "name": "Leaf",
+      "ts": 1606.5658820948565,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "B",
+      "cat": "net",
+      "name": "Leaf",
+      "ts": 1664.9367883029827,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 5,
+        "iteration": 4,
+        "srcline": "src/net.cc:72"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Step",
+      "ts": 1673.6362009183924,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 4,
+        "iteration": 4,
+        "srcline": "src/js.cc:276"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Phase",
+      "ts": 1682.5773250462364,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 3,
+        "iteration": 4,
+        "srcline": "src/js.cc:220"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "io",
+      "name": "Stage",
+      "ts": 1701.0446683002735,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 2,
+        "iteration": 4,
+        "srcline": "src/io.cc:186"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gc",
+      "name": "Frame",
+      "ts": 1709.334479687633,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 1,
+        "iteration": 4,
+        "srcline": "src/gc.cc:261"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "gc",
+      "name": "InnerMark",
+      "ts": 1721.7372172109774,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "val": 4
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "gc",
+      "name": "Frame",
+      "ts": 1729.7834744712472,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "io",
+      "name": "Stage",
+      "ts": 1747.7000181162473,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Phase",
+      "ts": 1754.9926379064711,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Step",
+      "ts": 1762.392367932308,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "net",
+      "name": "Leaf",
+      "ts": 1777.5995861347528,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Leaf",
+      "ts": 1823.0887409459674,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "depth": 5,
+        "iteration": 5,
+        "srcline": "src/js.cc:441"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Step",
+      "ts": 1842.2252038666645,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "depth": 4,
+        "iteration": 5,
+        "srcline": "src/gpu.cc:370"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Phase",
+      "ts": 1848.9434800114198,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "depth": 3,
+        "iteration": 5,
+        "srcline": "src/js.cc:385"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Stage",
+      "ts": 1857.945857860708,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "depth": 2,
+        "iteration": 5,
+        "srcline": "src/gpu.cc:175"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "io",
+      "name": "Frame",
+      "ts": 1864.619140464646,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "depth": 1,
+        "iteration": 5,
+        "srcline": "src/io.cc:81"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "io",
+      "name": "InnerMark",
+      "ts": 1876.4249960595841,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "val": 5
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "io",
+      "name": "Frame",
+      "ts": 1886.0555234797528,
+      "pid": 2,
+      "tid": 5
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Stage",
+      "ts": 1904.1933175854256,
+      "pid": 2,
+      "tid": 5
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Phase",
+      "ts": 1913.1441533466918,
+      "pid": 2,
+      "tid": 5
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Step",
+      "ts": 1925.6529450424464,
+      "pid": 2,
+      "tid": 5
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Leaf",
+      "ts": 1933.3327232503984,
+      "pid": 2,
+      "tid": 5
+    },
+    {
+      "ph": "B",
+      "cat": "gc",
+      "name": "Leaf",
+      "ts": 1998.1376979356737,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 5,
+        "iteration": 6,
+        "srcline": "src/gc.cc:192"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Step",
+      "ts": 2014.575359936801,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 4,
+        "iteration": 6,
+        "srcline": "src/js.cc:489"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Phase",
+      "ts": 2031.2547571162595,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 3,
+        "iteration": 6,
+        "srcline": "src/js.cc:471"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "net",
+      "name": "Stage",
+      "ts": 2036.2633355581786,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 2,
+        "iteration": 6,
+        "srcline": "src/net.cc:251"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "net",
+      "name": "Frame",
+      "ts": 2041.555486693966,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 1,
+        "iteration": 6,
+        "srcline": "src/net.cc:450"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "net",
+      "name": "InnerMark",
+      "ts": 2061.335307378123,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "val": 6
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "net",
+      "name": "Frame",
+      "ts": 2069.7895058165,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "net",
+      "name": "Stage",
+      "ts": 2078.381290471571,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Phase",
+      "ts": 2086.9943643582797,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Step",
+      "ts": 2100.504718513613,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "gc",
+      "name": "Leaf",
+      "ts": 2106.6860742379836,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Leaf",
+      "ts": 2167.1453857632555,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 5,
+        "iteration": 7,
+        "srcline": "src/gpu.cc:244"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gc",
+      "name": "Step",
+      "ts": 2186.3481159588305,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 4,
+        "iteration": 7,
+        "srcline": "src/gc.cc:136"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Phase",
+      "ts": 2199.263222770104,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 3,
+        "iteration": 7,
+        "srcline": "src/js.cc:217"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Stage",
+      "ts": 2218.7286663602163,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 2,
+        "iteration": 7,
+        "srcline": "src/js.cc:387"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gc",
+      "name": "Frame",
+      "ts": 2234.677632396566,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 1,
+        "iteration": 7,
+        "srcline": "src/gc.cc:366"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "gc",
+      "name": "InnerMark",
+      "ts": 2244.3533767660792,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "val": 7
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "gc",
+      "name": "Frame",
+      "ts": 2254.3145716193662,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Stage",
+      "ts": 2269.062742483958,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Phase",
+      "ts": 2280.6342437426756,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gc",
+      "name": "Step",
+      "ts": 2293.3978813582094,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Leaf",
+      "ts": 2300.212944296233,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "B",
+      "cat": "gc",
+      "name": "Leaf",
+      "ts": 2338.7259712161303,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "depth": 5,
+        "iteration": 8,
+        "srcline": "src/gc.cc:4"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Step",
+      "ts": 2344.790867506266,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "depth": 4,
+        "iteration": 8,
+        "srcline": "src/gpu.cc:31"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Phase",
+      "ts": 2353.224994263433,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "depth": 3,
+        "iteration": 8,
+        "srcline": "src/rendering.cc:441"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Stage",
+      "ts": 2363.1814215996405,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "depth": 2,
+        "iteration": 8,
+        "srcline": "src/js.cc:122"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "io",
+      "name": "Frame",
+      "ts": 2372.3585805591088,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "depth": 1,
+        "iteration": 8,
+        "srcline": "src/io.cc:110"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "io",
+      "name": "InnerMark",
+      "ts": 2385.44708953003,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "val": 8
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "io",
+      "name": "Frame",
+      "ts": 2393.233910057078,
+      "pid": 1,
+      "tid": 3
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Stage",
+      "ts": 2411.4696561841893,
+      "pid": 1,
+      "tid": 3
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Phase",
+      "ts": 2425.112830930003,
+      "pid": 1,
+      "tid": 3
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Step",
+      "ts": 2433.7577895659388,
+      "pid": 1,
+      "tid": 3
+    },
+    {
+      "ph": "E",
+      "cat": "gc",
+      "name": "Leaf",
+      "ts": 2445.8523837101075,
+      "pid": 1,
+      "tid": 3
+    },
+    {
+      "ph": "B",
+      "cat": "io",
+      "name": "Leaf",
+      "ts": 2479.7880570271527,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "depth": 5,
+        "iteration": 9,
+        "srcline": "src/io.cc:211"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Step",
+      "ts": 2491.793427047703,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "depth": 4,
+        "iteration": 9,
+        "srcline": "src/gpu.cc:28"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Phase",
+      "ts": 2506.8938952571025,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "depth": 3,
+        "iteration": 9,
+        "srcline": "src/gpu.cc:51"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Stage",
+      "ts": 2512.8030853682576,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "depth": 2,
+        "iteration": 9,
+        "srcline": "src/gpu.cc:174"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Frame",
+      "ts": 2529.8119730311832,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "depth": 1,
+        "iteration": 9,
+        "srcline": "src/rendering.cc:128"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "rendering",
+      "name": "InnerMark",
+      "ts": 2537.685824113308,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "val": 9
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Frame",
+      "ts": 2543.976110144591,
+      "pid": 2,
+      "tid": 5
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Stage",
+      "ts": 2551.078844601013,
+      "pid": 2,
+      "tid": 5
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Phase",
+      "ts": 2558.8311651378212,
+      "pid": 2,
+      "tid": 5
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Step",
+      "ts": 2570.7705861638356,
+      "pid": 2,
+      "tid": 5
+    },
+    {
+      "ph": "E",
+      "cat": "io",
+      "name": "Leaf",
+      "ts": 2588.8878754748944,
+      "pid": 2,
+      "tid": 5
+    },
+    {
+      "ph": "B",
+      "cat": "gpu",
+      "name": "Leaf",
+      "ts": 2639.2593161424597,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 5,
+        "iteration": 10,
+        "srcline": "src/gpu.cc:277"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Step",
+      "ts": 2656.799729918659,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 4,
+        "iteration": 10,
+        "srcline": "src/rendering.cc:475"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "gc",
+      "name": "Phase",
+      "ts": 2673.103212478954,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 3,
+        "iteration": 10,
+        "srcline": "src/gc.cc:86"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "io",
+      "name": "Stage",
+      "ts": 2684.199423348241,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 2,
+        "iteration": 10,
+        "srcline": "src/io.cc:110"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Frame",
+      "ts": 2702.1691792586944,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "depth": 1,
+        "iteration": 10,
+        "srcline": "src/rendering.cc:85"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "rendering",
+      "name": "InnerMark",
+      "ts": 2712.8537760433483,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "val": 10
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Frame",
+      "ts": 2722.736246793586,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "io",
+      "name": "Stage",
+      "ts": 2731.714292666168,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gc",
+      "name": "Phase",
+      "ts": 2748.4753516953965,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Step",
+      "ts": 2760.3004772054837,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "E",
+      "cat": "gpu",
+      "name": "Leaf",
+      "ts": 2771.645589495336,
+      "pid": 1,
+      "tid": 1
+    },
+    {
+      "ph": "B",
+      "cat": "gc",
+      "name": "Leaf",
+      "ts": 2840.8680347930126,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 5,
+        "iteration": 11,
+        "srcline": "src/gc.cc:152"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Step",
+      "ts": 2849.1335482692252,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 4,
+        "iteration": 11,
+        "srcline": "src/rendering.cc:297"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Phase",
+      "ts": 2865.169605951061,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 3,
+        "iteration": 11,
+        "srcline": "src/rendering.cc:383"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "rendering",
+      "name": "Stage",
+      "ts": 2874.873678097607,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 2,
+        "iteration": 11,
+        "srcline": "src/rendering.cc:300"
+      }
+    },
+    {
+      "ph": "B",
+      "cat": "js",
+      "name": "Frame",
+      "ts": 2887.025505854241,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "depth": 1,
+        "iteration": 11,
+        "srcline": "src/js.cc:81"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "js",
+      "name": "InnerMark",
+      "ts": 2892.8786995501714,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "val": 11
+      }
+    },
+    {
+      "ph": "E",
+      "cat": "js",
+      "name": "Frame",
+      "ts": 2898.9413275261186,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Stage",
+      "ts": 2916.7114657062803,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Phase",
+      "ts": 2922.739285696837,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "rendering",
+      "name": "Step",
+      "ts": 2928.7586986474735,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "E",
+      "cat": "gc",
+      "name": "Leaf",
+      "ts": 2946.6859866770255,
+      "pid": 2,
+      "tid": 4
+    },
+    {
+      "ph": "X",
+      "cat": "js",
+      "name": "DoWork",
+      "ts": 3005.990503763672,
+      "pid": 1,
+      "tid": 3,
+      "dur": 197.23300778966782,
+      "args": {
+        "size": 6968,
+        "srcline": "src/js.cc:337"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "js",
+      "name": "Mark-DoWork",
+      "ts": 3236.570403124989,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "value": 0.5227827155319589,
+        "seq": 0
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 3264.9380595683997,
+      "pid": 1,
+      "tid": 3,
+      "id": 1,
+      "args": {
+        "bytes": 215205
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 3279.983949189947,
+      "pid": 1,
+      "tid": 3,
+      "id": 100,
+      "args": {
+        "op": "call-0"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 3325.118658213593,
+      "pid": 1,
+      "tid": 3,
+      "id": 100
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 3366.367819216101,
+      "pid": 1,
+      "tid": 3,
+      "id": 100
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 3380.2941676799246,
+      "pid": 1,
+      "tid": 3,
+      "id": 200
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 3487.7542623404424,
+      "pid": 1,
+      "tid": 3,
+      "id": 200
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 3572.621211048897,
+      "pid": 1,
+      "tid": 3,
+      "id": 200
+    },
+    {
+      "ph": "X",
+      "cat": "io",
+      "name": "Commit",
+      "ts": 3610.491761000062,
+      "pid": 1,
+      "tid": 1,
+      "dur": 299.5826990306994,
+      "args": {
+        "size": 1738,
+        "srcline": "src/io.cc:38"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "io",
+      "name": "Mark-Commit",
+      "ts": 3941.5798361948264,
+      "pid": 1,
+      "tid": 1,
+      "args": {
+        "value": 0.5058846940487653,
+        "seq": 1
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 3949.891250453988,
+      "pid": 1,
+      "tid": 1,
+      "id": 1,
+      "args": {
+        "bytes": 366986
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 3968.1042130592846,
+      "pid": 1,
+      "tid": 1,
+      "id": 101,
+      "args": {
+        "op": "call-1"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 4058.445832458048,
+      "pid": 1,
+      "tid": 1,
+      "id": 101
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 4108.007999557159,
+      "pid": 1,
+      "tid": 1,
+      "id": 101
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 4122.740404527875,
+      "pid": 1,
+      "tid": 1,
+      "id": 201
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 4252.789799084652,
+      "pid": 1,
+      "tid": 1,
+      "id": 201
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 4367.214590095136,
+      "pid": 1,
+      "tid": 1,
+      "id": 201
+    },
+    {
+      "ph": "X",
+      "cat": "js",
+      "name": "Layout",
+      "ts": 4395.564923066915,
+      "pid": 1,
+      "tid": 3,
+      "dur": 281.5741306477409,
+      "args": {
+        "size": 1797,
+        "srcline": "src/js.cc:481"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "js",
+      "name": "Mark-Layout",
+      "ts": 4722.2641323135995,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "value": 0.26446592148712766,
+        "seq": 2
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 4749.506949988742,
+      "pid": 1,
+      "tid": 3,
+      "id": 1,
+      "args": {
+        "bytes": 779504
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 4762.805304602014,
+      "pid": 1,
+      "tid": 3,
+      "id": 102,
+      "args": {
+        "op": "call-2"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 4804.5931615872,
+      "pid": 1,
+      "tid": 3,
+      "id": 102
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 4872.979547749617,
+      "pid": 1,
+      "tid": 3,
+      "id": 102
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 4904.507913363781,
+      "pid": 1,
+      "tid": 3,
+      "id": 202
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 4958.939590843075,
+      "pid": 1,
+      "tid": 3,
+      "id": 202
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 5065.048145909284,
+      "pid": 1,
+      "tid": 3,
+      "id": 202
+    },
+    {
+      "ph": "X",
+      "cat": "rendering",
+      "name": "Flush",
+      "ts": 5082.967662958196,
+      "pid": 2,
+      "tid": 5,
+      "dur": 201.25680077348244,
+      "args": {
+        "size": 4633,
+        "srcline": "src/rendering.cc:23"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "rendering",
+      "name": "Mark-Flush",
+      "ts": 5294.36629129519,
+      "pid": 2,
+      "tid": 5,
+      "args": {
+        "value": 0.7711192230196271,
+        "seq": 3
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 5315.294125727725,
+      "pid": 2,
+      "tid": 5,
+      "id": 1,
+      "args": {
+        "bytes": 275704
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 5322.717855371833,
+      "pid": 2,
+      "tid": 5,
+      "id": 103,
+      "args": {
+        "op": "call-3"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 5378.064696320701,
+      "pid": 2,
+      "tid": 5,
+      "id": 103
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 5454.5180920615,
+      "pid": 2,
+      "tid": 5,
+      "id": 103
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 5481.345298004742,
+      "pid": 2,
+      "tid": 5,
+      "id": 203
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 5524.770163675463,
+      "pid": 2,
+      "tid": 5,
+      "id": 203
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 5668.1762763610595,
+      "pid": 2,
+      "tid": 5,
+      "id": 203
+    },
+    {
+      "ph": "X",
+      "cat": "rendering",
+      "name": "Paint",
+      "ts": 5698.906865073735,
+      "pid": 1,
+      "tid": 3,
+      "dur": 187.2775829522444,
+      "args": {
+        "size": 2526,
+        "srcline": "src/rendering.cc:221"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "rendering",
+      "name": "Mark-Paint",
+      "ts": 5901.282268797266,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "value": 0.3082583499301337,
+        "seq": 4
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 5928.75680601583,
+      "pid": 1,
+      "tid": 3,
+      "id": 1,
+      "args": {
+        "bytes": 835818
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 5948.339749991089,
+      "pid": 1,
+      "tid": 3,
+      "id": 104,
+      "args": {
+        "op": "call-4"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 5971.531340239986,
+      "pid": 1,
+      "tid": 3,
+      "id": 104
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 6020.15607882002,
+      "pid": 1,
+      "tid": 3,
+      "id": 104
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 6050.618079469337,
+      "pid": 1,
+      "tid": 3,
+      "id": 204
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 6160.650088745602,
+      "pid": 1,
+      "tid": 3,
+      "id": 204
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 6233.091524899356,
+      "pid": 1,
+      "tid": 3,
+      "id": 204
+    },
+    {
+      "ph": "X",
+      "cat": "gc",
+      "name": "Compile",
+      "ts": 6259.888030473672,
+      "pid": 2,
+      "tid": 4,
+      "dur": 293.57562889136,
+      "args": {
+        "size": 3000,
+        "srcline": "src/gc.cc:452"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "gc",
+      "name": "Mark-Compile",
+      "ts": 6579.955435779184,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "value": 0.179360663418207,
+        "seq": 5
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 6608.067618160223,
+      "pid": 2,
+      "tid": 4,
+      "id": 1,
+      "args": {
+        "bytes": 821415
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 6627.029856450948,
+      "pid": 2,
+      "tid": 4,
+      "id": 105,
+      "args": {
+        "op": "call-5"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 6711.208667565918,
+      "pid": 2,
+      "tid": 4,
+      "id": 105
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 6800.3337898359405,
+      "pid": 2,
+      "tid": 4,
+      "id": 105
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 6834.6562693331725,
+      "pid": 2,
+      "tid": 4,
+      "id": 205
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 6896.672954484509,
+      "pid": 2,
+      "tid": 4,
+      "id": 205
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 7021.157895580765,
+      "pid": 2,
+      "tid": 4,
+      "id": 205
+    },
+    {
+      "ph": "X",
+      "cat": "gc",
+      "name": "Parse",
+      "ts": 7034.400764372854,
+      "pid": 1,
+      "tid": 2,
+      "dur": 250.47838351117082,
+      "args": {
+        "size": 7641,
+        "srcline": "src/gc.cc:180"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "gc",
+      "name": "Mark-Parse",
+      "ts": 7307.086782577569,
+      "pid": 1,
+      "tid": 2,
+      "args": {
+        "value": 0.7953454991528618,
+        "seq": 6
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 7317.776669762763,
+      "pid": 1,
+      "tid": 2,
+      "id": 1,
+      "args": {
+        "bytes": 25837
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 7332.677167503993,
+      "pid": 1,
+      "tid": 2,
+      "id": 106,
+      "args": {
+        "op": "call-6"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 7384.554445789176,
+      "pid": 1,
+      "tid": 2,
+      "id": 106
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 7426.842690671016,
+      "pid": 1,
+      "tid": 2,
+      "id": 106
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 7438.9253133109005,
+      "pid": 1,
+      "tid": 2,
+      "id": 206
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 7561.724509803744,
+      "pid": 1,
+      "tid": 2,
+      "id": 206
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 7633.862045293674,
+      "pid": 1,
+      "tid": 2,
+      "id": 206
+    },
+    {
+      "ph": "X",
+      "cat": "rendering",
+      "name": "Layout",
+      "ts": 7659.144215559515,
+      "pid": 2,
+      "tid": 4,
+      "dur": 78.21331036656518,
+      "args": {
+        "size": 4449,
+        "srcline": "src/rendering.cc:20"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "rendering",
+      "name": "Mark-Layout",
+      "ts": 7751.693627814669,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "value": 0.43456375856464435,
+        "seq": 7
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 7774.907254330986,
+      "pid": 2,
+      "tid": 4,
+      "id": 1,
+      "args": {
+        "bytes": 329938
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 7786.453162589045,
+      "pid": 2,
+      "tid": 4,
+      "id": 107,
+      "args": {
+        "op": "call-7"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 7885.192030534372,
+      "pid": 2,
+      "tid": 4,
+      "id": 107
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 7914.443693256719,
+      "pid": 2,
+      "tid": 4,
+      "id": 107
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 7951.428835244054,
+      "pid": 2,
+      "tid": 4,
+      "id": 207
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 8004.23828818433,
+      "pid": 2,
+      "tid": 4,
+      "id": 207
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 8039.564672229917,
+      "pid": 2,
+      "tid": 4,
+      "id": 207
+    },
+    {
+      "ph": "X",
+      "cat": "io",
+      "name": "Flush",
+      "ts": 8062.6463976935665,
+      "pid": 1,
+      "tid": 2,
+      "dur": 286.19611121225483,
+      "args": {
+        "size": 5509,
+        "srcline": "src/io.cc:320"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "io",
+      "name": "Mark-Flush",
+      "ts": 8371.399134708156,
+      "pid": 1,
+      "tid": 2,
+      "args": {
+        "value": 0.8480152795063355,
+        "seq": 8
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 8394.392991283505,
+      "pid": 1,
+      "tid": 2,
+      "id": 1,
+      "args": {
+        "bytes": 315934
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 8406.999828844033,
+      "pid": 1,
+      "tid": 2,
+      "id": 108,
+      "args": {
+        "op": "call-8"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 8480.351261172491,
+      "pid": 1,
+      "tid": 2,
+      "id": 108
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 8526.445893561084,
+      "pid": 1,
+      "tid": 2,
+      "id": 108
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 8557.362145986915,
+      "pid": 1,
+      "tid": 2,
+      "id": 208
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 8653.89164330693,
+      "pid": 1,
+      "tid": 2,
+      "id": 208
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 8706.912454465748,
+      "pid": 1,
+      "tid": 2,
+      "id": 208
+    },
+    {
+      "ph": "X",
+      "cat": "js",
+      "name": "Commit",
+      "ts": 8736.860337492131,
+      "pid": 2,
+      "tid": 4,
+      "dur": 111.25646613270264,
+      "args": {
+        "size": 9077,
+        "srcline": "src/js.cc:427"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "js",
+      "name": "Mark-Commit",
+      "ts": 8858.133041212726,
+      "pid": 2,
+      "tid": 4,
+      "args": {
+        "value": 0.2869137168689272,
+        "seq": 9
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 8873.880244962473,
+      "pid": 2,
+      "tid": 4,
+      "id": 1,
+      "args": {
+        "bytes": 609182
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 8887.980168519669,
+      "pid": 2,
+      "tid": 4,
+      "id": 109,
+      "args": {
+        "op": "call-9"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 8933.760106898591,
+      "pid": 2,
+      "tid": 4,
+      "id": 109
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 8989.102988245628,
+      "pid": 2,
+      "tid": 4,
+      "id": 109
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 9019.371805241331,
+      "pid": 2,
+      "tid": 4,
+      "id": 209
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 9110.712684866281,
+      "pid": 2,
+      "tid": 4,
+      "id": 209
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 9235.960932759,
+      "pid": 2,
+      "tid": 4,
+      "id": 209
+    },
+    {
+      "ph": "X",
+      "cat": "rendering",
+      "name": "Layout",
+      "ts": 9274.755892869493,
+      "pid": 1,
+      "tid": 3,
+      "dur": 169.17204267710844,
+      "args": {
+        "size": 5591,
+        "srcline": "src/rendering.cc:48"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "rendering",
+      "name": "Mark-Layout",
+      "ts": 9486.664874128068,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "value": 0.7511381375407322,
+        "seq": 10
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 9508.484765891997,
+      "pid": 1,
+      "tid": 3,
+      "id": 1,
+      "args": {
+        "bytes": 236576
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 9525.583209310642,
+      "pid": 1,
+      "tid": 3,
+      "id": 110,
+      "args": {
+        "op": "call-10"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 9557.371526290304,
+      "pid": 1,
+      "tid": 3,
+      "id": 110
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 9581.068623737725,
+      "pid": 1,
+      "tid": 3,
+      "id": 110
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 9620.586704421181,
+      "pid": 1,
+      "tid": 3,
+      "id": 210
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 9723.939581188462,
+      "pid": 1,
+      "tid": 3,
+      "id": 210
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 9846.158301868487,
+      "pid": 1,
+      "tid": 3,
+      "id": 210
+    },
+    {
+      "ph": "X",
+      "cat": "gpu",
+      "name": "Decode",
+      "ts": 9869.82078691989,
+      "pid": 1,
+      "tid": 3,
+      "dur": 163.48183563281796,
+      "args": {
+        "size": 4097,
+        "srcline": "src/gpu.cc:76"
+      }
+    },
+    {
+      "ph": "i",
+      "cat": "gpu",
+      "name": "Mark-Decode",
+      "ts": 10069.54494299718,
+      "pid": 1,
+      "tid": 3,
+      "args": {
+        "value": 0.00554481813803176,
+        "seq": 11
+      }
+    },
+    {
+      "ph": "C",
+      "cat": "memory",
+      "name": "HeapUsage",
+      "ts": 10093.319054912641,
+      "pid": 1,
+      "tid": 3,
+      "id": 1,
+      "args": {
+        "bytes": 808475
+      }
+    },
+    {
+      "ph": "b",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 10111.60103299529,
+      "pid": 1,
+      "tid": 3,
+      "id": 111,
+      "args": {
+        "op": "call-11"
+      }
+    },
+    {
+      "ph": "n",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 10193.874665536676,
+      "pid": 1,
+      "tid": 3,
+      "id": 111
+    },
+    {
+      "ph": "e",
+      "cat": "ipc",
+      "name": "AsyncOp",
+      "ts": 10231.381956481662,
+      "pid": 1,
+      "tid": 3,
+      "id": 111
+    },
+    {
+      "ph": "s",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 10265.505252166857,
+      "pid": 1,
+      "tid": 3,
+      "id": 211
+    },
+    {
+      "ph": "t",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 10379.014665335846,
+      "pid": 1,
+      "tid": 3,
+      "id": 211
+    },
+    {
+      "ph": "f",
+      "cat": "scheduler",
+      "name": "TaskFlow",
+      "ts": 10464.760651484756,
+      "pid": 1,
+      "tid": 3,
+      "id": 211
+    }
+  ]
+}
