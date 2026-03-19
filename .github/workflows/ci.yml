@@ -12,16 +12,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # yyjson is not packaged on Ubuntu; build from source.
-      # On Debian/Ubuntu once packaged: sudo apt-get install -y libyyjson-dev
-      # On macOS: brew install yyjson
-      - name: Install yyjson
+      - name: Install yajl
         run: |
-          curl -fsSL https://github.com/ibireme/yyjson/archive/refs/tags/0.10.0.tar.gz | tar xz
-          cd yyjson-0.10.0
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
-          cmake --build build
-          sudo cmake --install build
+          sudo apt-get update -q
+          sudo apt-get install -y libyajl-dev
 
       - name: Build
         run: make

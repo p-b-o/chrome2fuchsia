@@ -1,6 +1,6 @@
 CC      = cc
 CFLAGS  = -O2 -Wall -Wextra -std=c11
-LDFLAGS = -lyyjson -lm
+LDFLAGS = -lyajl -lm
 TARGET  = c2f
 SRC     = c2f.c
 TESTDIR = tests

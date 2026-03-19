@@ -10,10 +10,10 @@ Reads from **stdin**, writes binary FXT to **stdout**.
 
 ## Building
 
-You need [yyjson](https://github.com/ibireme/yyjson).
+You need [yajl](https://github.com/lloyd/yajl).
 
 ```sh
-cc -O2 -o c2f c2f.c -lyyjson -lm
+cc -O2 -o c2f c2f.c -lyajl -lm
 ```
 
 ---
@@ -28,7 +28,6 @@ c2f [OPTIONS] < input.json > output.fxt
 |---|---|
 | `--help`, `-h` | Show help and exit. |
 | `--verbose` | Print conversion statistics to stderr when done. |
-| `--progress` | Show an animated progress bar on stderr during conversion. |
 
 ### Examples
 
@@ -39,11 +38,8 @@ c2f [OPTIONS] < input.json > output.fxt
 # Show statistics after conversion
 ./c2f --verbose < trace.json > trace.fxt
 
-# Show progress bar while converting a large trace
-./c2f --progress < trace.json > trace.fxt
 
 # Both flags together
-./c2f --verbose --progress < trace.json > trace.fxt
 
 ```
 

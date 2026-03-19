@@ -5,7 +5,7 @@
  * Fuchsia Trace Format (FXT) binary on stdout.
  *
  * Build:
- *   cc -O2 -o c2f c2f.c -lyyjson -lm
+ *   cc -O2 -o c2f c2f.c -lyajl -lm
  *
  * Usage:
  *   ./c2f < trace.json > trace.fxt
@@ -26,7 +26,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include "yyjson.h"
+#include <yajl/yajl_parse.h>
 
 /* -----------------------------------------------------------------------
  * Compile-time constants
@@ -498,224 +498,160 @@ static void emit_init(void) {
  * Returns the number of 8-byte words written for this argument.
  */
 /*
- * Resolved argument: key StrRef + yyjson value, pre-resolved before event body.
- * String records for new strings have already been flushed by the time
- * emit_resolved_arg is called, so no intern calls happen here.
+ * Arg value kinds used by the streaming parser.
+ */
+typedef enum { ARG_NULL=0, ARG_BOOL, ARG_INT64, ARG_UINT64, ARG_DOUBLE, ARG_STRING } ArgKind;
+
+#define MAX_ARG_KEY_LEN  128
+#define MAX_ARG_STR_LEN  512
+
+typedef struct {
+    char    key[MAX_ARG_KEY_LEN];
+    ArgKind kind;
+    union {
+        int      b;
+        int64_t  i64;
+        uint64_t u64;
+        double   f64;
+        char     str[MAX_ARG_STR_LEN];
+    } v;
+} EventArg;
+
+/*
+ * Resolved argument: key StrRef + pre-resolved value refs.
+ * Fully independent of the JSON DOM.
  */
 typedef struct {
-    StrRef      kref;
-    yyjson_val *val;
+    StrRef  kref;
+    ArgKind kind;
+    union {
+        int64_t  i64;
+        uint64_t u64;
+        double   f64;
+        StrRef   sref;   /* for ARG_STRING: value already interned */
+    } v;
 } ResolvedArg;
 
 /*
- * emit_resolved_arg: write one argument word sequence.
- * All StrRefs are already resolved (intern calls done before hdr_pos).
- * BUG B fix: compute sizes dynamically from kref.is_inline / vref.is_inline.
+ * emit_resolved_arg: write one FXT argument word sequence.
+ * All StrRefs already resolved; no intern calls happen here.
+ *
+ * FXT argument type numbers:
+ *   0=null  3=int64  4=uint64  5=double  6=string  9=bool
  */
 static void emit_resolved_arg(const ResolvedArg *ra) {
-    const StrRef *kref = &ra->kref;
-    yyjson_val   *val  = ra->val;
-    (void)val;  /* used in every branch below; suppresses stub-induced warning */
-    /* extra words consumed by an inline key name stream */
-    size_t key_extra = kref->is_inline ? ((kref->len + 7) >> 3) : 0;
+    const StrRef *kref    = &ra->kref;
+    size_t        key_extra = kref->is_inline ? ((kref->len + 7) >> 3) : 0;
 
-    /*
-     * FXT argument type numbers (from the Fuchsia trace-format spec):
-     *   0 = null
-     *   1 = int32   (value in header [32..63], size=1)
-     *   2 = uint32  (value in header [32..63], size=1)
-     *   3 = int64   (separate value word,       size=2)
-     *   4 = uint64  (separate value word,        size=2)
-     *   5 = double  (separate value word,        size=2)
-     *   6 = string  (string refs in header,      size=1+inline)
-     *   7 = pointer (separate value word,        size=2)
-     *   8 = koid    (separate value word,        size=2)
-     *   9 = bool    (value in header [32],        size=1)
-     */
-
-    if (yyjson_is_uint(val)) {
-        /* arg type 4 = uint64
-         * layout: [hdr] [optional inline key] [uint64 value]
-         * size = 1 + key_extra + 1
-         */
+    switch (ra->kind) {
+    case ARG_UINT64: {
         uint64_t sz  = 2 + key_extra;
-        uint64_t hdr = (uint64_t)4
-                     | (sz << 4)
-                     | ((uint64_t)kref->ref << 16);
+        uint64_t hdr = (uint64_t)4 | (sz << 4) | ((uint64_t)kref->ref << 16);
         out_word_unsafe(hdr);
         emit_inline_str(kref);
-        out_word_unsafe(yyjson_get_uint(val));
-
-    } else if (yyjson_is_sint(val) || yyjson_is_int(val)) {
-        /* arg type 3 = int64
-         * layout: [hdr] [optional inline key] [int64 value]
-         * size = 1 + key_extra + 1
-         */
+        out_word_unsafe(ra->v.u64);
+        break; }
+    case ARG_INT64: {
         uint64_t sz  = 2 + key_extra;
-        uint64_t hdr = (uint64_t)3
-                     | (sz << 4)
-                     | ((uint64_t)kref->ref << 16);
+        uint64_t hdr = (uint64_t)3 | (sz << 4) | ((uint64_t)kref->ref << 16);
         out_word_unsafe(hdr);
         emit_inline_str(kref);
-        out_word_unsafe((uint64_t)yyjson_get_sint(val));
-
-    } else if (yyjson_is_real(val)) {
-        /* arg type 5 = double
-         * layout: [hdr] [optional inline key] [double value]
-         * size = 1 + key_extra + 1
-         */
+        out_word_unsafe((uint64_t)ra->v.i64);
+        break; }
+    case ARG_DOUBLE: {
         uint64_t sz  = 2 + key_extra;
-        uint64_t hdr = (uint64_t)5
-                     | (sz << 4)
-                     | ((uint64_t)kref->ref << 16);
+        uint64_t hdr = (uint64_t)5 | (sz << 4) | ((uint64_t)kref->ref << 16);
         out_word_unsafe(hdr);
         emit_inline_str(kref);
-        double dv = yyjson_get_real(val);
-        uint64_t dword;
-        memcpy(&dword, &dv, 8);
+        uint64_t dword; memcpy(&dword, &ra->v.f64, 8);
         out_word_unsafe(dword);
-
-    } else if (yyjson_is_str(val)) {
-        /* arg type 6 = string
-         * layout: [hdr] [optional inline key] [optional inline value]
-         * header [32..47] = value string ref
-         * All string refs already resolved in the pre-pass (BUG A fix):
-         * make_strref here hits the hash table without emitting new records.
-         */
-        const char *sv   = yyjson_get_str(val);
-        StrRef      vref = make_strref(sv);
-        size_t val_extra = vref.is_inline ? ((vref.len + 7) >> 3) : 0;
+        break; }
+    case ARG_STRING: {
+        const StrRef *vref     = &ra->v.sref;
+        size_t        val_extra = vref->is_inline ? ((vref->len + 7) >> 3) : 0;
         uint64_t sz  = 1 + key_extra + val_extra;
-        uint64_t hdr = (uint64_t)6
-                     | (sz                  << 4)
+        uint64_t hdr = (uint64_t)6 | (sz << 4)
                      | ((uint64_t)kref->ref << 16)
-                     | ((uint64_t)vref.ref  << 32);
+                     | ((uint64_t)vref->ref << 32);
         out_word_unsafe(hdr);
         emit_inline_str(kref);
-        emit_inline_str(&vref);
-
-    } else if (yyjson_is_bool(val)) {
-        /* arg type 9 = boolean
-         * value packed into header word bit [32]; size = 1 + key_extra
-         */
+        emit_inline_str(vref);
+        break; }
+    case ARG_BOOL: {
         uint64_t sz  = 1 + key_extra;
-        int bv = yyjson_get_bool(val) ? 1 : 0;
-        uint64_t hdr = (uint64_t)9
-                     | (sz                  << 4)
+        uint64_t hdr = (uint64_t)9 | (sz << 4)
                      | ((uint64_t)kref->ref << 16)
-                     | ((uint64_t)bv        << 32);
+                     | ((uint64_t)(ra->v.i64 ? 1 : 0) << 32);
         out_word_unsafe(hdr);
         emit_inline_str(kref);
-
-    } else {
-        /* null / array / object -> arg type 0 (null)
-         * size = 1 + key_extra
-         */
+        break; }
+    default: /* ARG_NULL */ {
         uint64_t sz  = 1 + key_extra;
-        uint64_t hdr = (uint64_t)0
-                     | (sz                  << 4)
-                     | ((uint64_t)kref->ref << 16);
+        uint64_t hdr = (uint64_t)0 | (sz << 4) | ((uint64_t)kref->ref << 16);
         out_word_unsafe(hdr);
         emit_inline_str(kref);
+        break; }
     }
 }
 
 /* -----------------------------------------------------------------------
- * Event record emission
- * -----------------------------------------------------------------------
- *
- * FXT Event record layout (record type 4):
- *
- *   header word:
- *     [0..3]  = 4
- *     [4..15] = total size in 8-byte words
- *     [16..19]= event type
- *     [20..23]= num args
- *     [24..31]= thread ref (8 bits)
- *     [32..47]= category string ref (16 bits)
- *     [48..63]= name string ref (16 bits)
- *
- *   timestamp word (ticks = microseconds, since init says 1e9 ticks/sec
- *                   but Chrome uses microseconds; we convert µs -> ns below)
- *
- *   process id word  (if thread ref == 0)
- *   thread id word   (if thread ref == 0)
- *
- *   category stream  (if category string ref has bit15 set)
- *   name stream      (if name string ref has bit15 set)
- *
- *   argument data    (repeated)
- *
- *   event-type specific data
- */
+ * FxtEvent (streaming)
+ * --------------------------------------------------------------------- */
+
+#define MAX_EVENT_ARGS 15
 
 typedef struct {
-    int      etype;         /* FXT event type 0..10                  */
-    uint64_t ts_ns;         /* timestamp in nanoseconds               */
-    uint64_t pid;
-    uint64_t tid;
-    const char *cat;
-    const char *name;
-    yyjson_val *args;       /* JSON object of args, may be NULL       */
-    uint64_t extra_word;    /* counter id / async id / flow id / end_ts */
-    int      has_extra;     /* 1 if extra_word should be written      */
+    int       etype;      /* FXT event type 0..10; -1=M metadata; -2=skip */
+    uint64_t  ts_ns;
+    uint64_t  pid;
+    uint64_t  tid;
+    char      cat[MAX_ARG_KEY_LEN];
+    char      name[MAX_ARG_KEY_LEN];
+    uint64_t  extra_word;
+    int       has_extra;
+    EventArg  args[MAX_EVENT_ARGS];
+    size_t    num_args;
 } FxtEvent;
 
+/* -----------------------------------------------------------------------
+ * emit_event
+ * --------------------------------------------------------------------- */
+
 static void emit_event(const FxtEvent *ev) {
-    /*
-     * BUG A FIX: Resolve ALL string references (and register any new strings)
-     * BEFORE recording hdr_pos.  intern_string may call emit_string_record
-     * which writes bytes to the output buffer.  Those String Record bytes must
-     * appear BEFORE the Event Record in the stream, not inside its body.
-     *
-     * Order: cat, name, then every arg key and string arg value.
-     * Thread intern only writes Thread Records, same concern applies.
-     */
-
     /* Step 1: resolve cat and name (may emit String Records) */
-    StrRef cat_ref  = make_strref(ev->cat  ? ev->cat  : "");
-    StrRef name_ref = make_strref(ev->name ? ev->name : "");
+    StrRef cat_ref  = make_strref(ev->cat[0]  ? ev->cat  : "");
+    StrRef name_ref = make_strref(ev->name[0] ? ev->name : "");
 
-    /* Step 2: resolve thread (may emit a Thread Record) */
+    /* Step 2: resolve thread (may emit Thread + KObj records) */
     uint8_t tref = intern_thread(ev->pid, ev->tid);
 
-    /* Step 3: resolve all argument string refs and cache them.
-     * We also resolve string arg values here so their String Records are
-     * flushed before hdr_pos. */
-#define MAX_ARGS 15
-    ResolvedArg rargs[MAX_ARGS];
-    size_t num_args = 0;
+    /* Step 3: resolve all arg string refs before hdr_pos */
+    ResolvedArg rargs[MAX_EVENT_ARGS];
+    size_t num_args = ev->num_args < MAX_EVENT_ARGS ? ev->num_args : MAX_EVENT_ARGS;
 
-    if (ev->args && yyjson_is_obj(ev->args)) {
-        yyjson_obj_iter iter;
-        yyjson_obj_iter_init(ev->args, &iter);
-        yyjson_val *key_v;
-        while ((key_v = yyjson_obj_iter_next(&iter)) != NULL
-               && num_args < MAX_ARGS) {
-            yyjson_val *val_v   = yyjson_obj_iter_get_val(key_v);
-            const char *key_str = yyjson_get_str(key_v);
-            /* Rename "srcline" to "args.srcline" for FXT consumers. */
-            if (key_str && strcmp(key_str, "srcline") == 0)
-                key_str = "args.srcline";
-            memset(&rargs[num_args], 0, sizeof(rargs[num_args]));
-            rargs[num_args].kref = make_strref(key_str);
-            /* Pre-intern string values so their String Records appear before hdr_pos */
-            if (yyjson_is_str(val_v))
-                intern_string(yyjson_get_str(val_v));
-            rargs[num_args].val = val_v;
-            num_args++;
+    for (size_t i = 0; i < num_args; i++) {
+        const EventArg *a = &ev->args[i];
+        ResolvedArg    *r = &rargs[i];
+        r->kref = make_strref(a->key);
+        r->kind = a->kind;
+        switch (a->kind) {
+        case ARG_UINT64: r->v.u64  = a->v.u64; break;
+        case ARG_INT64:  r->v.i64  = a->v.i64; break;
+        case ARG_DOUBLE: r->v.f64  = a->v.f64; break;
+        case ARG_BOOL:   r->v.i64  = a->v.b;   break;
+        case ARG_STRING:
+            intern_string(a->v.str);          /* pre-flush before hdr_pos */
+            r->v.sref = make_strref(a->v.str);
+            break;
+        default: break; /* ARG_NULL */
         }
     }
 
-
-    /*
-     * ALL intern calls are done. From here on, no new String/Thread Records
-     * will be written.  Now record hdr_pos and write the event body.
-     */
+    /* ALL intern calls done. Write event body. */
     out_reserve(MAX_RECORD_BYTES);
 
     size_t hdr_pos = out_tell();
-    out_word_unsafe(0);                   /* placeholder header – patched below */
+    out_word_unsafe(0);          /* placeholder – patched below */
     out_word_unsafe(ev->ts_ns);
 
     if (tref == 0) {
@@ -726,15 +662,12 @@ static void emit_event(const FxtEvent *ev) {
     emit_inline_str(&cat_ref);
     emit_inline_str(&name_ref);
 
-    for (size_t i = 0; i < num_args; i++) {
+    for (size_t i = 0; i < num_args; i++)
         emit_resolved_arg(&rargs[i]);
-    }
 
-    if (ev->has_extra) {
+    if (ev->has_extra)
         out_word_unsafe(ev->extra_word);
-    }
 
-    /* Compute actual record size and patch the placeholder header */
     size_t total_words = (out_tell() - hdr_pos) / 8;
     uint64_t header =
           (uint64_t)4
@@ -745,7 +678,6 @@ static void emit_event(const FxtEvent *ev) {
         | ((uint64_t)cat_ref.ref   << 32)
         | ((uint64_t)name_ref.ref  << 48);
     out_patch(hdr_pos, header);
-#undef MAX_ARGS
 }
 
 /* -----------------------------------------------------------------------
@@ -776,246 +708,329 @@ static long g_events_written = 0;
  * Command-line options
  * --------------------------------------------------------------------- */
 
-#include <unistd.h>   /* isatty, STDERR_FILENO */
 
-static int g_opt_verbose  = 0;   /* --verbose : print stats to stderr    */
-static int g_opt_progress = 0;   /* --progress: show progress bar        */
+static int g_opt_verbose  = 0;   /* --verbose : print stats to stderr */
 
 /* -----------------------------------------------------------------------
- * Progress bar
+ * yajl streaming parser
  *
- * Active only when --progress is given.
- * Uses \r to overwrite in-place; redraws at most every PROGRESS_INTERVAL
- * events to avoid becoming the bottleneck on huge traces.
- * A final call with force=1 always redraws and appends a newline.
- * ----------------------------------------------------------------------- */
-
-#define PROGRESS_BAR_WIDTH  40
-#define PROGRESS_INTERVAL   500   /* redraw every N events */
-
-static long g_total_events = 0;   /* set before the conversion loop */
-
-static void progress_init(long total) {
-    g_total_events = total;
-}
-
-static void progress_draw(long done, int force) {
-    if (!g_opt_progress) return;
-    if (!force && (done % PROGRESS_INTERVAL) != 0) return;
-
-    long total = g_total_events;
-    double frac = (total > 0) ? (double)done / (double)total : 0.0;
-    if (frac > 1.0) frac = 1.0;
-
-    int filled = (int)(frac * PROGRESS_BAR_WIDTH);
-
-    char bar[PROGRESS_BAR_WIDTH + 1];
-    for (int i = 0; i < PROGRESS_BAR_WIDTH; i++)
-        bar[i] = (i < filled) ? '#' : '-';
-    bar[PROGRESS_BAR_WIDTH] = '\0';
-
-    fprintf(stderr, "\r  Converting  [%s]  %ld / %ld  (%3.0f%%)   ",
-            bar, done, total, frac * 100.0);
-
-    if (force) fputc('\n', stderr);
-    fflush(stderr);
-}
-
-/*
- * collect_metadata_events: first pass over the events array.
- * Scans for Chrome 'M' (metadata) phase events and registers any
- * process_name / thread_name values BEFORE any events are emitted.
+ * Parses Chrome Trace JSON incrementally from stdin, building one
+ * FxtEvent at a time.  When an event object closes, dispatch_event()
+ * processes and emits it immediately.  The full JSON tree is never kept
+ * in memory; peak allocation is O(one event).
  *
- * This guarantees that intern_thread() always finds a real name in the
- * lookup tables, even when M events appear after the first event that
- * references a given pid/tid.
- */
-static void collect_metadata_events(yyjson_val *events) {
-    size_t idx, max;
-    yyjson_val *ev;
-    yyjson_arr_foreach(events, idx, max, ev) {
-        if (!yyjson_is_obj(ev)) continue;
+ * State machine:
+ *   PS_ROOT         – before any token (root may be [ or {)
+ *   PS_ROOT_OBJ     – inside root object, scanning for "traceEvents"
+ *   PS_ROOT_SKIP    – skipping a non-traceEvents value in root object
+ *   PS_EVENTS_ARRAY – between event objects in the events array
+ *   PS_EVENT_OBJ    – inside one event object, scanning field keys
+ *   PS_EVENT_FIELD  – expecting the scalar value of a known field
+ *   PS_EVENT_SKIP   – skipping a nested value inside an event
+ *   PS_ARGS_OBJ     – inside the "args" object of an event
+ *   PS_ARG_VAL      – expecting one arg value
+ *   PS_ARG_SKIP     – skipping nested object/array inside args
+ * --------------------------------------------------------------------- */
 
-        const char *ph = yyjson_get_str(yyjson_obj_get(ev, "ph"));
-        if (!ph || ph[0] != 'M') continue;
 
-        const char *mname = yyjson_get_str(yyjson_obj_get(ev, "name"));
-        if (!mname) continue;
+typedef enum {
+    PS_ROOT, PS_ROOT_OBJ, PS_ROOT_SKIP,
+    PS_TRACE_EVENTS_VALUE,  /* expecting the [ that opens traceEvents */
+    PS_EVENTS_ARRAY,
+    PS_EVENT_OBJ, PS_EVENT_FIELD, PS_EVENT_SKIP,
+    PS_ARGS_OBJ, PS_ARG_VAL, PS_ARG_SKIP
+} ParseState;
 
-        yyjson_val *pid_v = yyjson_obj_get(ev, "pid");
-        yyjson_val *tid_v = yyjson_obj_get(ev, "tid");
-        yyjson_val *margs = yyjson_obj_get(ev, "args");
-        const char *label = margs
-            ? yyjson_get_str(yyjson_obj_get(margs, "name")) : NULL;
-        if (!label) continue;
+typedef enum {
+    EF_NONE, EF_PH, EF_CAT, EF_NAME, EF_TS, EF_DUR, EF_PID, EF_TID, EF_ID
+} EventField;
 
-        uint64_t pid = 0, tid = 0;
-        if (pid_v) {
-            if (yyjson_is_uint(pid_v)) pid = yyjson_get_uint(pid_v);
-            else if (yyjson_is_int(pid_v)) pid = (uint64_t)yyjson_get_sint(pid_v);
-        }
-        if (tid_v) {
-            if (yyjson_is_uint(tid_v)) tid = yyjson_get_uint(tid_v);
-            else if (yyjson_is_int(tid_v)) tid = (uint64_t)yyjson_get_sint(tid_v);
-        }
+typedef struct {
+    ParseState state;
+    EventField cur_field;
+    int        skip_depth;
+    FxtEvent   ev;
+    char       arg_key[MAX_ARG_KEY_LEN];
+} ParseCtx;
 
-        if (strcmp(mname, "process_name") == 0) {
-            register_proc_name(pid, label);
-        } else if (strcmp(mname, "thread_name") == 0) {
-            register_thr_name(pid, tid, label);
-        }
-    }
+static void reset_event(FxtEvent *ev) {
+    memset(ev, 0, sizeof(*ev));
+    ev->etype = -2;   /* default: unknown phase – skip */
 }
 
-static void process_event(yyjson_val *ev_obj) {
-    g_events_read++;
-
-    const char *ph   = yyjson_get_str(yyjson_obj_get(ev_obj, "ph"));
-    const char *cat  = yyjson_get_str(yyjson_obj_get(ev_obj, "cat"));
-    const char *name = yyjson_get_str(yyjson_obj_get(ev_obj, "name"));
-    yyjson_val *ts_v  = yyjson_obj_get(ev_obj, "ts");
-    yyjson_val *dur_v = yyjson_obj_get(ev_obj, "dur");
-    yyjson_val *pid_v = yyjson_obj_get(ev_obj, "pid");
-    yyjson_val *tid_v = yyjson_obj_get(ev_obj, "tid");
-    yyjson_val *id_v  = yyjson_obj_get(ev_obj, "id");
-    yyjson_val *args  = yyjson_obj_get(ev_obj, "args");
-
-    /* Timestamps in Chrome are in microseconds (floating point allowed).
-     * FXT init record says 1e9 ticks/sec = 1 tick per nanosecond.
-     * Convert: ts_ns = ts_us * 1000.
-     */
-    double ts_us = 0.0;
-    if (ts_v) {
-        if (yyjson_is_real(ts_v))      ts_us = yyjson_get_real(ts_v);
-        else if (yyjson_is_int(ts_v))  ts_us = (double)yyjson_get_sint(ts_v);
-        else if (yyjson_is_uint(ts_v)) ts_us = (double)yyjson_get_uint(ts_v);
-    }
-    uint64_t ts_ns = (uint64_t)(ts_us * 1000.0);
-
-    uint64_t pid = 0, tid = 0;
-    if (pid_v) {
-        if (yyjson_is_int(pid_v))  pid = (uint64_t)yyjson_get_sint(pid_v);
-        else if (yyjson_is_uint(pid_v)) pid = yyjson_get_uint(pid_v);
-    }
-    if (tid_v) {
-        if (yyjson_is_int(tid_v))  tid = (uint64_t)yyjson_get_sint(tid_v);
-        else if (yyjson_is_uint(tid_v)) tid = yyjson_get_uint(tid_v);
-    }
-
-    uint64_t id = 0;
-    if (id_v) {
-        if (yyjson_is_int(id_v))       id = (uint64_t)yyjson_get_sint(id_v);
-        else if (yyjson_is_uint(id_v)) id = yyjson_get_uint(id_v);
-        else if (yyjson_is_str(id_v)) {
-            /* IDs can be hex strings like "0x1a2b" */
-            const char *id_str = yyjson_get_str(id_v);
-            if (id_str) id = (uint64_t)strtoull(id_str, NULL, 0);
-        }
-    }
-
-    FxtEvent fev;
-    memset(&fev, 0, sizeof(fev));
-    fev.ts_ns = ts_ns;
-    fev.pid   = pid;
-    fev.tid   = tid;
-    fev.cat   = cat  ? cat  : "";
-    fev.name  = name ? name : "";
-    fev.args  = (args && yyjson_is_obj(args)) ? args : NULL;
-
-    if (!ph) ph = "i";  /* default to instant */
-    char p = ph[0];
-
-    switch (p) {
-    case 'B':
-        fev.etype     = 2;
-        fev.has_extra = 0;
-        break;
-
-    case 'E':
-        fev.etype     = 3;
-        fev.has_extra = 0;
-        break;
-
-    case 'X': {
-        /* Duration complete: needs end_time word */
-        double dur_us = 0.0;
-        if (dur_v) {
-            if (yyjson_is_real(dur_v))      dur_us = yyjson_get_real(dur_v);
-            else if (yyjson_is_int(dur_v))  dur_us = (double)yyjson_get_sint(dur_v);
-            else if (yyjson_is_uint(dur_v)) dur_us = (double)yyjson_get_uint(dur_v);
-        }
-        fev.etype      = 4;
-        fev.has_extra  = 1;
-        fev.extra_word = ts_ns + (uint64_t)(dur_us * 1000.0);
-        break;
-    }
-
+static void set_phase(FxtEvent *ev, char ph) {
+    switch (ph) {
+    case 'B': ev->etype = 2;  ev->has_extra = 0; break;
+    case 'E': ev->etype = 3;  ev->has_extra = 0; break;
+    case 'X': ev->etype = 4;  ev->has_extra = 1; break;
     case 'i':
-    case 'I':
-        fev.etype     = 0;
-        fev.has_extra = 0;
-        break;
-
-    case 'C':
-        fev.etype      = 1;
-        fev.has_extra  = 1;
-        fev.extra_word = id;
-        break;
-
-    case 'b':
-        fev.etype      = 5;
-        fev.has_extra  = 1;
-        fev.extra_word = id;
-        break;
-
-    case 'n':
-        fev.etype      = 6;
-        fev.has_extra  = 1;
-        fev.extra_word = id;
-        break;
-
-    case 'e':
-        fev.etype      = 7;
-        fev.has_extra  = 1;
-        fev.extra_word = id;
-        break;
-
-    case 's':
-        fev.etype      = 8;
-        fev.has_extra  = 1;
-        fev.extra_word = id;
-        break;
-
-    case 't':
-        fev.etype      = 9;
-        fev.has_extra  = 1;
-        fev.extra_word = id;
-        break;
-
-    case 'f':
-        fev.etype      = 10;
-        fev.has_extra  = 1;
-        fev.extra_word = id;
-        break;
-
-    case 'M':
-        /*
-         * Metadata events were already handled in collect_metadata_events().
-         * Skip here without emitting any FXT record.
-         */
-        g_events_read--; /* un-count: M events are not trace events */
-        return;
-
-    default:
-        /* Object ('O'), Sample ('P'), etc. – emit as Instant. */
-        fev.etype     = 0;
-        fev.has_extra = 0;
-        break;
+    case 'I': ev->etype = 0;  ev->has_extra = 0; break;
+    case 'C': ev->etype = 1;  ev->has_extra = 1; break;
+    case 'b': ev->etype = 5;  ev->has_extra = 1; break;
+    case 'n': ev->etype = 6;  ev->has_extra = 1; break;
+    case 'e': ev->etype = 7;  ev->has_extra = 1; break;
+    case 's': ev->etype = 8;  ev->has_extra = 1; break;
+    case 't': ev->etype = 9;  ev->has_extra = 1; break;
+    case 'f': ev->etype = 10; ev->has_extra = 1; break;
+    case 'M': ev->etype = -1; ev->has_extra = 0; break;
+    default:   ev->etype = -2; ev->has_extra = 0; break;
     }
+}
 
-    emit_event(&fev);
+static void dispatch_event(FxtEvent *ev) {
+    if (ev->etype == -1) {
+        /* Metadata 'M': register process/thread name */
+        const char *label = NULL;
+        for (size_t i = 0; i < ev->num_args; i++)
+            if (strcmp(ev->args[i].key, "name") == 0 &&
+                ev->args[i].kind == ARG_STRING)
+                label = ev->args[i].v.str;
+        if (label) {
+            if      (strcmp(ev->name, "process_name") == 0)
+                register_proc_name(ev->pid, label);
+            else if (strcmp(ev->name, "thread_name") == 0)
+                register_thr_name(ev->pid, ev->tid, label);
+        }
+        return;   /* M events do not count toward read/written */
+    }
+    if (ev->etype == -2) return;  /* unknown phase – skip silently */
+
+    g_events_read++;
+    emit_event(ev);
     g_events_written++;
 }
+
+/* ---- helpers ---- */
+#define SCOPY(dst, src, srclen, maxlen) do { \
+    size_t _n = (srclen) < (maxlen)-1 ? (srclen) : (maxlen)-1; \
+    memcpy((dst), (src), _n); (dst)[_n] = '\0'; } while(0)
+
+static EventArg *next_arg(ParseCtx *ctx) {
+    if (ctx->ev.num_args >= MAX_EVENT_ARGS) return NULL;
+    EventArg *a = &ctx->ev.args[ctx->ev.num_args++];
+    memset(a, 0, sizeof(*a));
+    SCOPY(a->key, ctx->arg_key, strlen(ctx->arg_key), MAX_ARG_KEY_LEN);
+    return a;
+}
+
+/* ---- yajl callbacks ---- */
+
+static int cb_null(void *vctx) {
+    ParseCtx *ctx = vctx;
+    if (ctx->state == PS_ARG_VAL) {
+        EventArg *a = next_arg(ctx);
+        if (a) a->kind = ARG_NULL;
+        ctx->state = PS_ARGS_OBJ;
+    } else if (ctx->state == PS_EVENT_FIELD) {
+        ctx->state = PS_EVENT_OBJ;
+    }
+    return 1;
+}
+
+static int cb_boolean(void *vctx, int val) {
+    ParseCtx *ctx = vctx;
+    if (ctx->state == PS_ARG_VAL) {
+        EventArg *a = next_arg(ctx);
+        if (a) { a->kind = ARG_BOOL; a->v.b = val; }
+        ctx->state = PS_ARGS_OBJ;
+    } else if (ctx->state == PS_EVENT_FIELD) {
+        ctx->state = PS_EVENT_OBJ;
+    }
+    return 1;
+}
+
+static int cb_integer(void *vctx, long long val) {
+    ParseCtx *ctx = vctx;
+    if (ctx->state == PS_EVENT_FIELD) {
+        switch (ctx->cur_field) {
+        case EF_TS:  ctx->ev.ts_ns = (uint64_t)((double)val * 1000.0); break;
+        case EF_DUR: ctx->ev.extra_word = ctx->ev.ts_ns
+                                        + (uint64_t)((double)val * 1000.0); break;
+        case EF_PID: ctx->ev.pid = (uint64_t)val; break;
+        case EF_TID: ctx->ev.tid = (uint64_t)val; break;
+        case EF_ID:
+            if (ctx->ev.has_extra && ctx->ev.etype != 4)
+                ctx->ev.extra_word = (uint64_t)val;
+            break;
+        default: break;
+        }
+        ctx->state = PS_EVENT_OBJ;
+    } else if (ctx->state == PS_ARG_VAL) {
+        EventArg *a = next_arg(ctx);
+        if (a) {
+            if (val < 0) { a->kind = ARG_INT64;  a->v.i64 = (int64_t)val; }
+            else         { a->kind = ARG_UINT64; a->v.u64 = (uint64_t)val; }
+        }
+        ctx->state = PS_ARGS_OBJ;
+    }
+    return 1;
+}
+
+static int cb_double(void *vctx, double val) {
+    ParseCtx *ctx = vctx;
+    if (ctx->state == PS_EVENT_FIELD) {
+        switch (ctx->cur_field) {
+        case EF_TS:  ctx->ev.ts_ns      = (uint64_t)(val * 1000.0); break;
+        case EF_DUR: ctx->ev.extra_word = ctx->ev.ts_ns
+                                        + (uint64_t)(val * 1000.0); break;
+        default: break;
+        }
+        ctx->state = PS_EVENT_OBJ;
+    } else if (ctx->state == PS_ARG_VAL) {
+        EventArg *a = next_arg(ctx);
+        if (a) { a->kind = ARG_DOUBLE; a->v.f64 = val; }
+        ctx->state = PS_ARGS_OBJ;
+    }
+    return 1;
+}
+
+static int cb_string(void *vctx, const unsigned char *s, size_t l) {
+    ParseCtx *ctx = vctx;
+    if (ctx->state == PS_EVENT_FIELD) {
+        switch (ctx->cur_field) {
+        case EF_PH:
+            set_phase(&ctx->ev, l > 0 ? (char)s[0] : 'i');
+            break;
+        case EF_CAT:  SCOPY(ctx->ev.cat,  s, l, MAX_ARG_KEY_LEN); break;
+        case EF_NAME: SCOPY(ctx->ev.name, s, l, MAX_ARG_KEY_LEN); break;
+        case EF_ID: {
+            char tmp[64]; size_t tl = l < 63 ? l : 63;
+            memcpy(tmp, s, tl); tmp[tl] = '\0';
+            if (ctx->ev.has_extra && ctx->ev.etype != 4)
+                ctx->ev.extra_word = strtoull(tmp, NULL, 0);
+            break; }
+        default: break;
+        }
+        ctx->state = PS_EVENT_OBJ;
+    } else if (ctx->state == PS_ARG_VAL) {
+        EventArg *a = next_arg(ctx);
+        if (a) { a->kind = ARG_STRING; SCOPY(a->v.str, s, l, MAX_ARG_STR_LEN); }
+        ctx->state = PS_ARGS_OBJ;
+    }
+    return 1;
+}
+
+static int cb_map_key(void *vctx, const unsigned char *s, size_t l) {
+    ParseCtx *ctx = vctx;
+    switch (ctx->state) {
+    case PS_ROOT_OBJ:
+        if (l == 11 && memcmp(s, "traceEvents", 11) == 0)
+            ctx->state = PS_TRACE_EVENTS_VALUE;
+        else {
+            ctx->state = PS_ROOT_SKIP;
+            ctx->skip_depth = 0;
+        }
+        break;
+    case PS_EVENT_OBJ:
+        ctx->cur_field = EF_NONE;
+        ctx->state     = PS_EVENT_FIELD;
+        if      (l==2 && memcmp(s,"ph",2)==0)   ctx->cur_field = EF_PH;
+        else if (l==3 && memcmp(s,"cat",3)==0)  ctx->cur_field = EF_CAT;
+        else if (l==4 && memcmp(s,"name",4)==0) ctx->cur_field = EF_NAME;
+        else if (l==2 && memcmp(s,"ts",2)==0)   ctx->cur_field = EF_TS;
+        else if (l==3 && memcmp(s,"dur",3)==0)  ctx->cur_field = EF_DUR;
+        else if (l==3 && memcmp(s,"pid",3)==0)  ctx->cur_field = EF_PID;
+        else if (l==3 && memcmp(s,"tid",3)==0)  ctx->cur_field = EF_TID;
+        else if (l==2 && memcmp(s,"id",2)==0)   ctx->cur_field = EF_ID;
+        else if (l==4 && memcmp(s,"args",4)==0) { ctx->state = PS_ARGS_OBJ; }
+        else { ctx->state = PS_EVENT_SKIP; ctx->skip_depth = 0; }
+        break;
+    case PS_ARGS_OBJ: {
+        size_t kl = l < MAX_ARG_KEY_LEN-1 ? l : MAX_ARG_KEY_LEN-1;
+        memcpy(ctx->arg_key, s, kl); ctx->arg_key[kl] = '\0';
+        if (strcmp(ctx->arg_key, "srcline") == 0)
+            strcpy(ctx->arg_key, "args.srcline");
+        ctx->state = PS_ARG_VAL;
+        break; }
+    default: break;
+    }
+    return 1;
+}
+
+static int cb_start_map(void *vctx) {
+    ParseCtx *ctx = vctx;
+    switch (ctx->state) {
+    case PS_ROOT:         ctx->state = PS_ROOT_OBJ; break;
+    case PS_EVENTS_ARRAY:
+        reset_event(&ctx->ev);
+        ctx->state = PS_EVENT_OBJ;
+        break;
+    case PS_EVENT_FIELD:
+        ctx->state = PS_EVENT_SKIP; ctx->skip_depth = 1; break;
+    case PS_EVENT_SKIP:   ctx->skip_depth++; break;
+    case PS_ROOT_SKIP:    ctx->skip_depth++; break;
+    case PS_ARG_VAL: {
+        EventArg *a = next_arg(ctx);
+        if (a) a->kind = ARG_NULL;   /* nested map -> null arg */
+        ctx->state = PS_ARG_SKIP; ctx->skip_depth = 1; break; }
+    case PS_ARG_SKIP:     ctx->skip_depth++; break;
+    default: break;
+    }
+    return 1;
+}
+
+static int cb_end_map(void *vctx) {
+    ParseCtx *ctx = vctx;
+    switch (ctx->state) {
+    case PS_EVENT_OBJ:
+        dispatch_event(&ctx->ev);
+        reset_event(&ctx->ev);
+        ctx->state = PS_EVENTS_ARRAY;
+        break;
+    case PS_ARGS_OBJ:     ctx->state = PS_EVENT_OBJ; break;
+    case PS_ROOT_OBJ:     /* root object closed */ break;
+    case PS_EVENT_SKIP:
+        if (--ctx->skip_depth <= 0) ctx->state = PS_EVENT_OBJ;
+        break;
+    case PS_ARG_SKIP:
+        if (--ctx->skip_depth <= 0) ctx->state = PS_ARGS_OBJ;
+        break;
+    case PS_ROOT_SKIP:
+        if (--ctx->skip_depth <= 0) ctx->state = PS_ROOT_OBJ;
+        break;
+    default: break;
+    }
+    return 1;
+}
+
+static int cb_start_array(void *vctx) {
+    ParseCtx *ctx = vctx;
+    switch (ctx->state) {
+    case PS_ROOT:                ctx->state = PS_EVENTS_ARRAY; break;
+    case PS_TRACE_EVENTS_VALUE:  ctx->state = PS_EVENTS_ARRAY; break;
+    case PS_EVENTS_ARRAY: ctx->state = PS_EVENT_SKIP; ctx->skip_depth = 1; break;
+    case PS_EVENT_FIELD:  ctx->state = PS_EVENT_SKIP; ctx->skip_depth = 1; break;
+    case PS_EVENT_SKIP:   ctx->skip_depth++; break;
+    case PS_ROOT_SKIP:    ctx->skip_depth++; break;
+    case PS_ARG_VAL: {
+        EventArg *a = next_arg(ctx);
+        if (a) a->kind = ARG_NULL;
+        ctx->state = PS_ARG_SKIP; ctx->skip_depth = 1; break; }
+    case PS_ARG_SKIP:     ctx->skip_depth++; break;
+    default: break;
+    }
+    return 1;
+}
+
+static int cb_end_array(void *vctx) {
+    ParseCtx *ctx = vctx;
+    switch (ctx->state) {
+    case PS_EVENTS_ARRAY: ctx->state = PS_ROOT_OBJ; break;
+    case PS_EVENT_SKIP:
+        if (--ctx->skip_depth <= 0) ctx->state = PS_EVENT_OBJ;
+        break;
+    case PS_ARG_SKIP:
+        if (--ctx->skip_depth <= 0) ctx->state = PS_ARGS_OBJ;
+        break;
+    case PS_ROOT_SKIP:
+        if (--ctx->skip_depth <= 0) ctx->state = PS_ROOT_OBJ;
+        break;
+    default: break;
+    }
+    return 1;
+}
+
+
 
 /* -----------------------------------------------------------------------
  * Main
@@ -1031,13 +1046,11 @@ static void print_help(const char *argv0) {
         "Options:\n"
         "  --help      Show this help message and exit.\n"
         "  --verbose   Print conversion statistics to stderr when done.\n"
-        "  --progress  Show an animated progress bar on stderr during conversion.\n"
         "\n"
         "Examples:\n"
         "  %s < trace.json > trace.fxt\n"
-        "  %s --verbose < trace.json > trace.fxt\n"
-        "  %s --progress --verbose < trace.json > trace.fxt\n",
-        argv0, argv0, argv0, argv0);
+        "  %s --verbose < trace.json > trace.fxt\n",
+        argv0, argv0, argv0);
 }
 
 int main(int argc, char **argv) {
@@ -1048,8 +1061,6 @@ int main(int argc, char **argv) {
             return 0;
         } else if (strcmp(argv[i], "--verbose") == 0) {
             g_opt_verbose = 1;
-        } else if (strcmp(argv[i], "--progress") == 0) {
-            g_opt_progress = 1;
         } else {
             fprintf(stderr, "Unknown option: %s\n"
                             "Run '%s --help' for usage.\n",
@@ -1058,25 +1069,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    /* Read all of stdin with yyjson_read_fp */
-    yyjson_read_err err;
-    yyjson_doc *doc = yyjson_read_fp(stdin, 0, NULL, &err);
-    if (!doc) {
-        fprintf(stderr, "JSON parse error at position %zu: %s\n",
-                err.pos, err.msg ? err.msg : "unknown error");
-        return 1;
-    }
-
-    yyjson_val *root = yyjson_doc_get_root(doc);
-
-    /* Pre-size output buffer based on JSON input size to avoid realloc chain.
-     * FXT output is typically ~25-30% of JSON input. We use 40% as a safe margin.
-     * yyjson_doc_get_read_size() returns the number of bytes read from the source. */
-    {
-        size_t json_bytes = yyjson_doc_get_read_size(doc);
-        g_outcap = json_bytes * 2 / 5;  /* 40% of input size */
-        if (g_outcap < OUTBUF_INITIAL) g_outcap = OUTBUF_INITIAL;
-    }
+    /* Allocate output buffer (pre-sized generously; out_grow expands as needed) */
+    g_outcap = OUTBUF_INITIAL * 4;
     g_outbuf = (uint8_t *)malloc(g_outcap);
     if (!g_outbuf) { fprintf(stderr, "OOM\n"); return 1; }
 
@@ -1084,47 +1078,42 @@ int main(int argc, char **argv) {
     emit_magic();
     emit_init();
 
-    /*
-     * Chrome trace format root can be:
-     *   1. An object  { "traceEvents": [...], ... }
-     *   2. An array   [ event, event, ... ]
-     */
-    yyjson_val *events = NULL;
+    /* ---- yajl streaming parse ---- */
+    yajl_callbacks cbs = {
+        cb_null, cb_boolean, cb_integer, cb_double,
+        NULL,  /* number: use integer+double */
+        cb_string,
+        cb_start_map, cb_map_key, cb_end_map,
+        cb_start_array, cb_end_array
+    };
+    ParseCtx ctx;
+    memset(&ctx, 0, sizeof(ctx));
+    ctx.state = PS_ROOT;
+    reset_event(&ctx.ev);
 
-    if (yyjson_is_obj(root)) {
-        events = yyjson_obj_get(root, "traceEvents");
-    } else if (yyjson_is_arr(root)) {
-        events = root;
+    yajl_handle yh = yajl_alloc(&cbs, NULL, &ctx);
+    yajl_config(yh, yajl_allow_comments, 1);
+
+
+    unsigned char ibuf[65536];
+    size_t got = 0;
+    yajl_status yst = yajl_status_ok;
+    while ((got = fread(ibuf, 1, sizeof(ibuf), stdin)) > 0) {
+        yst = yajl_parse(yh, ibuf, got);
+        if (yst != yajl_status_ok) break;
     }
+    if (yst == yajl_status_ok)
+        yst = yajl_complete_parse(yh);
 
-    if (events && yyjson_is_arr(events)) {
-        /*
-         * Pass 1: collect all 'M' metadata events to populate the
-         * process/thread name tables before any records are emitted.
-         * This ensures intern_thread() always has real names available,
-         * regardless of where in the array the M events appear.
-         */
-        collect_metadata_events(events);
-
-        /* Pass 2: emit all FXT records */
-        long total = (long)yyjson_arr_size(events);
-        progress_init(total);
-        if (g_opt_progress) {
-            fprintf(stderr, "  Parsing done. Converting %ld events...\n", total);
-        }
-
-        size_t idx, max;
-        yyjson_val *ev;
-        yyjson_arr_foreach(events, idx, max, ev) {
-            if (yyjson_is_obj(ev)) {
-                process_event(ev);
-                progress_draw(g_events_written, 0);
-            }
-        }
-        progress_draw(g_events_written, 1);   /* final, forced redraw */
+    if (yst != yajl_status_ok) {
+        unsigned char *emsg = yajl_get_error(yh, 1, ibuf, got);
+        fprintf(stderr, "JSON parse error: %s\n", emsg);
+        yajl_free_error(yh, emsg);
+        yajl_free(yh);
+        return 1;
     }
+    yajl_free(yh);
 
-    yyjson_doc_free(doc);
 
     /* Flush any remaining buffered output */
     out_flush();
