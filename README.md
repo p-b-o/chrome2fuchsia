@@ -37,10 +37,6 @@ c2f [OPTIONS] < input.json > output.fxt
 
 # Show statistics after conversion
 ./c2f --verbose < trace.json > trace.fxt
-
-
-# Both flags together
-
 ```
 
 ### Viewing the result
