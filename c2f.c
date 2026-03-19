@@ -710,11 +710,83 @@ static long g_events_read    = 0;
 static long g_events_written = 0;
 
 /* -----------------------------------------------------------------------
+ * Per-thread call-stack depth tracker
+ *
+ * Tracks the B/E nesting depth for each (pid, tid) pair using an
+ * open-addressed hash map.  Each entry holds a stack of B event names so
+ * that on every E event we can verify the name matches the innermost B.
+ * Depth must never go below zero.  At end of conversion every entry must
+ * be zero (no unmatched B events).
+ * --------------------------------------------------------------------- */
+#define DEPTH_HASH_SIZE  4096u   /* power of two */
+#define DEPTH_HASH_MASK  (DEPTH_HASH_SIZE - 1u)
+#define DEPTH_STACK_MAX  256     /* max nesting depth tracked per thread */
+
+typedef struct {
+    uint64_t pid;
+    uint64_t tid;
+    long     depth;
+    int      used;
+    /* Stack of B event names, one per nesting level */
+    char     names[DEPTH_STACK_MAX][MAX_ARG_KEY_LEN];
+} DepthEntry;
+
+static DepthEntry g_depth_map[DEPTH_HASH_SIZE];
+
+static DepthEntry *depth_find_or_insert(uint64_t pid, uint64_t tid) {
+    uint64_t h = 2166136261u;
+    for (int b = 0; b < 8; b++) h = (h ^ ((pid >> (b*8)) & 0xff)) * 16777619u;
+    for (int b = 0; b < 8; b++) h = (h ^ ((tid >> (b*8)) & 0xff)) * 16777619u;
+    uint32_t slot = (uint32_t)(h & DEPTH_HASH_MASK);
+    for (;;) {
+        DepthEntry *e = &g_depth_map[slot];
+        if (!e->used) {
+            e->pid = pid; e->tid = tid; e->depth = 0; e->used = 1;
+            return e;
+        }
+        if (e->pid == pid && e->tid == tid) return e;
+        slot = (slot + 1) & DEPTH_HASH_MASK;
+    }
+}
+
+static void depth_push(uint64_t pid, uint64_t tid, const char *name) {
+    DepthEntry *e = depth_find_or_insert(pid, tid);
+    if (e->depth < DEPTH_STACK_MAX) {
+        size_t _nl = strlen(name);
+        if (_nl >= MAX_ARG_KEY_LEN) _nl = MAX_ARG_KEY_LEN - 1;
+        memcpy(e->names[e->depth], name, _nl);
+        e->names[e->depth][_nl] = 0;
+    }
+    e->depth++;
+}
+
+static void depth_pop(uint64_t pid, uint64_t tid, const char *name) {
+    DepthEntry *e = depth_find_or_insert(pid, tid);
+    if (e->depth <= 0) {
+        fprintf(stderr,
+                "WARNING: unmatched E event '%s' on pid=%" PRIu64 " tid=%" PRIu64
+                " (depth would go negative)\n", name, pid, tid);
+        return;
+    }
+    e->depth--;
+    /* Verify name matches the innermost B event */
+    if (e->depth < DEPTH_STACK_MAX) {
+        if (strcmp(e->names[e->depth], name) != 0) {
+            fprintf(stderr,
+                    "WARNING: E event '%s' on pid=%" PRIu64 " tid=%" PRIu64
+                    " does not match innermost B event '%s'\n",
+                    name, pid, tid, e->names[e->depth]);
+        }
+    }
+}
+
+/* -----------------------------------------------------------------------
  * Command-line options
  * --------------------------------------------------------------------- */
 
 
 static int g_opt_verbose  = 0;   /* --verbose : print stats to stderr */
+static int g_opt_debug    = 0;   /* --debug   : print every event as JSON to stderr */
 
 /* -----------------------------------------------------------------------
  * yajl streaming parser
@@ -782,6 +854,50 @@ static void set_phase(FxtEvent *ev, char ph) {
     }
 }
 
+
+
+static void debug_print_event(const FxtEvent *ev, long depth) {
+    const char *ph;
+    switch (ev->etype) {
+    case  2: ph = "B"; break;  case  3: ph = "E"; break;
+    case  4: ph = "X"; break;  case  0: ph = "i"; break;
+    case  1: ph = "C"; break;  case  5: ph = "b"; break;
+    case  6: ph = "n"; break;  case  7: ph = "e"; break;
+    case  8: ph = "s"; break;  case  9: ph = "t"; break;
+    case 10: ph = "f"; break;  case -1: ph = "M"; break;
+    default: ph = "?"; break;
+    }
+    double ts_us = (double)ev->ts_ns / 1000.0;
+    /* Build the JSON object field by field to avoid PRIu64 string concat issues */
+    fprintf(stderr, "{\"ph\":\"%s\",\"cat\":\"%s\",\"name\":\"%s\","
+                    "\"ts\":%.3f,\"pid\":", ph, ev->cat, ev->name, ts_us);
+    fprintf(stderr, "%" PRIu64 ",\"tid\":", ev->pid);
+    fprintf(stderr, "%" PRIu64, ev->tid);
+    if (ev->etype == 4)
+        fprintf(stderr, ",\"dur\":%.3f",
+                (double)(ev->extra_word - ev->ts_ns) / 1000.0);
+    if (ev->has_extra && ev->etype != 4)
+        fprintf(stderr, ",\"id\":%" PRIu64, ev->extra_word);
+    if (ev->num_args > 0) {
+        fprintf(stderr, ",\"args\":{");
+        for (size_t i = 0; i < ev->num_args; i++) {
+            const EventArg *a = &ev->args[i];
+            if (i) fputc(',', stderr);
+            fprintf(stderr, "\"%s\":", a->key);
+            switch (a->kind) {
+            case ARG_NULL:   fprintf(stderr, "null"); break;
+            case ARG_BOOL:   fprintf(stderr, "%s", a->v.b ? "true" : "false"); break;
+            case ARG_INT64:  fprintf(stderr, "%" PRId64, a->v.i64); break;
+            case ARG_UINT64: fprintf(stderr, "%" PRIu64, a->v.u64); break;
+            case ARG_DOUBLE: fprintf(stderr, "%g",  a->v.f64); break;
+            case ARG_STRING: fprintf(stderr, "\"%s\"", a->v.str); break;
+            }
+        }
+        fputc('}', stderr);
+    }
+    fprintf(stderr, ",\"depth\":%ld}\n", depth);
+}
+
 static void dispatch_event(FxtEvent *ev) {
     if (ev->etype == -1) {
         /* Metadata 'M': register process/thread name */
@@ -796,13 +912,26 @@ static void dispatch_event(FxtEvent *ev) {
             else if (strcmp(ev->name, "thread_name") == 0)
                 register_thr_name(ev->pid, ev->tid, label);
         }
+        if (g_opt_debug) debug_print_event(ev, 0);
         return;   /* M events do not count toward read/written */
     }
     if (ev->etype == -2) return;  /* unknown phase – skip silently */
 
+    /* Track B/E call-stack depth per thread */
+    if (ev->etype == 2)       /* Duration begin */
+        depth_push(ev->pid, ev->tid, ev->name);
+    else if (ev->etype == 3)  /* Duration end */
+        depth_pop(ev->pid, ev->tid, ev->name);
+
+    if (g_opt_debug) {
+        long d = depth_find_or_insert(ev->pid, ev->tid)->depth;
+        /* For E events show depth+1 (pre-pop depth) to match the B entry */
+        debug_print_event(ev, ev->etype == 3 ? d + 1 : d);
+    }
     g_events_read++;
     emit_event(ev);
     g_events_written++;
+
 }
 
 /* ---- helpers ---- */
@@ -1051,11 +1180,13 @@ static void print_help(const char *argv0) {
         "Options:\n"
         "  --help      Show this help message and exit.\n"
         "  --verbose   Print conversion statistics to stderr when done.\n"
+        "  --debug     Print every event as JSON to stderr.\n"
         "\n"
         "Examples:\n"
         "  %s < trace.json > trace.fxt\n"
-        "  %s --verbose < trace.json > trace.fxt\n",
-        argv0, argv0, argv0);
+        "  %s --verbose < trace.json > trace.fxt\n"
+        "  %s --debug   < trace.json > trace.fxt\n",
+        argv0, argv0, argv0, argv0);
 }
 
 int main(int argc, char **argv) {
@@ -1066,6 +1197,8 @@ int main(int argc, char **argv) {
             return 0;
         } else if (strcmp(argv[i], "--verbose") == 0) {
             g_opt_verbose = 1;
+        } else if (strcmp(argv[i], "--debug") == 0) {
+            g_opt_debug = 1;
         } else {
             fprintf(stderr, "Unknown option: %s\n"
                             "Run '%s --help' for usage.\n",
@@ -1110,6 +1243,7 @@ int main(int argc, char **argv) {
     if (yst == yajl_status_ok)
         yst = yajl_complete_parse(yh);
 
+
     if (yst != yajl_status_ok) {
         unsigned char *emsg = yajl_get_error(yh, 1, ibuf, got);
         fprintf(stderr, "JSON parse error: %s\n", emsg);
@@ -1145,6 +1279,22 @@ int main(int argc, char **argv) {
                 "WARNING: events_read (%ld) != events_written (%ld)!\n",
                 g_events_read, g_events_written);
         return 1;
+    }
+
+    /* Check that every thread's B/E call stack is balanced. */
+    {
+        int unbalanced = 0;
+        for (uint32_t i = 0; i < DEPTH_HASH_SIZE; i++) {
+            DepthEntry *e = &g_depth_map[i];
+            if (e->used && e->depth != 0) {
+                fprintf(stderr,
+                        "WARNING: unmatched B events on pid=%" PRIu64
+                        " tid=%" PRIu64 " (depth=%ld)\n",
+                        e->pid, e->tid, e->depth);
+                unbalanced = 1;
+            }
+        }
+        if (unbalanced) return 1;
     }
 
     return 0;
