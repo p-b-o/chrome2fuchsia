@@ -181,22 +181,28 @@ static uint16_t intern_string_n(const char *s, size_t len) {
         slot = (slot + 1) & STRHASH_MASK;
     }
 
-    /* Not found – register if table has room */
-    if (g_strtab_count < MAX_STRING_TABLE) {
-        uint16_t new_idx = (uint16_t)(g_strtab_count + 1);
-        StringEntry *e   = &g_strtab[slot];
-        e->str = strdup(s);
-        e->len = len;
-        e->idx = new_idx;
-        g_strtab_count++;
-        emit_string_record(new_idx, s, len);
-        g_strref_count++;
-        return new_idx;
+    /* Not found – register, resetting the table first if it is full */
+    if (g_strtab_count >= MAX_STRING_TABLE) {
+        /* Free all strdup'd strings and wipe the hash table. */
+        for (uint32_t i = 0; i < STRHASH_SIZE; i++) {
+            if (g_strtab[i].str) { free(g_strtab[i].str); }
+        }
+        memset(g_strtab, 0, sizeof(g_strtab));
+        g_strtab_count = 0;
+        /* Re-probe for the now-empty slot. */
+        slot = fnv1a(s, len) & STRHASH_MASK;
+        while (g_strtab[slot].str) slot = (slot + 1) & STRHASH_MASK;
     }
 
-    /* Table full – inline ref */
-    size_t clamped = len > 32767 ? 32767 : len;
-    return (uint16_t)(0x8000u | (uint16_t)clamped);
+    uint16_t new_idx = (uint16_t)(g_strtab_count + 1);
+    StringEntry *e   = &g_strtab[slot];
+    e->str = strdup(s);
+    e->len = len;
+    e->idx = new_idx;
+    g_strtab_count++;
+    emit_string_record(new_idx, s, len);
+    g_strref_count++;
+    return new_idx;
 }
 
 static inline uint16_t intern_string(const char *s) {
@@ -412,43 +418,42 @@ static uint8_t intern_thread(uint64_t pid, uint64_t tid) {
         if (g_thrtab[i].pid == pid && g_thrtab[i].tid == tid)
             return g_thrtab[i].idx;
     }
-    if (g_thrtab_count < MAX_THREAD_TABLE) {
-        uint8_t new_idx = (uint8_t)(g_thrtab_count + 1);
-        g_thrtab[g_thrtab_count].pid = pid;
-        g_thrtab[g_thrtab_count].tid = tid;
-        g_thrtab[g_thrtab_count].idx = new_idx;
-        g_thrtab_count++;
-
-        /* 1. Kernel Object Record: process (once per pid) */
-        ensure_kobj_process(pid);
-
-        /* 2. Kernel Object Record: thread */
-        {
-            const char *tname = lookup_thr_name(pid, tid);
-            char fallback[32];
-            if (!tname) {
-                snprintf(fallback, sizeof(fallback), "%" PRIu64, tid);
-                tname = fallback;
-            }
-            emit_kobj_thread(pid, tid, tname);
-        }
-
-        /* 3. FXT Thread Record (record type 3):
-         *     [0..3]=3, [4..15]=3 (words), [16..23]=thread_idx
-         *     process id word
-         *     thread id word
-         */
-        uint64_t header =
-              (uint64_t)3
-            | ((uint64_t)3       << 4)
-            | ((uint64_t)new_idx << 16);
-        out_word(header);
-        out_word(pid);
-        out_word(tid);
-
-        return new_idx;
+    if (g_thrtab_count >= MAX_THREAD_TABLE) {
+        /* Thread table full – wipe it and start over. */
+        memset(g_thrtab, 0, sizeof(g_thrtab));
+        g_thrtab_count = 0;
     }
-    return 0; /* inline fallback: thread table full */
+
+    uint8_t new_idx = (uint8_t)(g_thrtab_count + 1);
+    g_thrtab[g_thrtab_count].pid = pid;
+    g_thrtab[g_thrtab_count].tid = tid;
+    g_thrtab[g_thrtab_count].idx = new_idx;
+    g_thrtab_count++;
+
+    /* 1. Kernel Object Record: process (once per pid) */
+    ensure_kobj_process(pid);
+
+    /* 2. Kernel Object Record: thread */
+    {
+        const char *tname = lookup_thr_name(pid, tid);
+        char fallback[32];
+        if (!tname) {
+            snprintf(fallback, sizeof(fallback), "%" PRIu64, tid);
+            tname = fallback;
+        }
+        emit_kobj_thread(pid, tid, tname);
+    }
+
+    /* 3. FXT Thread Record (record type 3) */
+    uint64_t header =
+          (uint64_t)3
+        | ((uint64_t)3       << 4)
+        | ((uint64_t)new_idx << 16);
+    out_word(header);
+    out_word(pid);
+    out_word(tid);
+
+    return new_idx;
 }
 
 /* -----------------------------------------------------------------------
