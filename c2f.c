@@ -694,6 +694,9 @@ static void emit_event(const FxtEvent *ev) {
                && num_args < MAX_ARGS) {
             yyjson_val *val_v   = yyjson_obj_iter_get_val(key_v);
             const char *key_str = yyjson_get_str(key_v);
+            /* Rename "srcline" to "args.srcline" for FXT consumers. */
+            if (key_str && strcmp(key_str, "srcline") == 0)
+                key_str = "args.srcline";
             memset(&rargs[num_args], 0, sizeof(rargs[num_args]));
             rargs[num_args].kref = make_strref(key_str);
             /* Pre-intern string values so their String Records appear before hdr_pos */

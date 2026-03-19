@@ -105,9 +105,9 @@ JSON argument values are mapped to FXT argument types:
 | Boolean | `bool` (type 9) |
 | Null / object / array | `null` (type 0) |
 
-### `srcline` argument
+### `args.srcline` argument
 
-The `srcline` argument, if present, is passed through as-is as a single FXT string argument. Splitting it into separate `src` and `line` arguments would cost an extra 16 bytes per event due to the mandatory int64 value word, so the combined form is retained.
+The `args.srcline` argument, if present, is passed through as-is as a single FXT string argument. Splitting it into separate `src` and `line` arguments would cost an extra 16 bytes per event due to the mandatory int64 value word, so the combined form is retained under the key `args.srcline`.
 
 ---
 
