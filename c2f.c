@@ -760,25 +760,6 @@ static void depth_push(uint64_t pid, uint64_t tid, const char *name) {
     e->depth++;
 }
 
-static void depth_pop(uint64_t pid, uint64_t tid, const char *name) {
-    DepthEntry *e = depth_find_or_insert(pid, tid);
-    if (e->depth <= 0) {
-        fprintf(stderr,
-                "WARNING: unmatched E event '%s' on pid=%" PRIu64 " tid=%" PRIu64
-                " (depth would go negative)\n", name, pid, tid);
-        return;
-    }
-    e->depth--;
-    /* Verify name matches the innermost B event */
-    if (e->depth < DEPTH_STACK_MAX) {
-        if (strcmp(e->names[e->depth], name) != 0) {
-            fprintf(stderr,
-                    "WARNING: E event '%s' on pid=%" PRIu64 " tid=%" PRIu64
-                    " does not match innermost B event '%s'\n",
-                    name, pid, tid, e->names[e->depth]);
-        }
-    }
-}
 
 /* -----------------------------------------------------------------------
  * Command-line options
@@ -898,6 +879,44 @@ static void debug_print_event(const FxtEvent *ev, long depth) {
     fprintf(stderr, ",\"depth\":%ld}\n", depth);
 }
 
+/*
+ * emit_synthetic_e: emit a synthetic Duration-end event for `name` on the
+ * given thread, at timestamp `ts_ns`.  Used to close orphaned B events when
+ * a real E arrives for a function deeper in the stack.
+ */
+static void emit_synthetic_e(uint64_t pid, uint64_t tid, uint64_t ts_ns,
+                              const char *cat, const char *name) {
+    FxtEvent fake;
+    memset(&fake, 0, sizeof(fake));
+    fake.etype     = 3;   /* Duration end */
+    fake.has_extra = 0;
+    fake.pid       = pid;
+    fake.tid       = tid;
+    fake.ts_ns     = ts_ns;
+    size_t cl = strlen(cat);
+    if (cl >= MAX_ARG_KEY_LEN) cl = MAX_ARG_KEY_LEN - 1;
+    memcpy(fake.cat,  cat,  cl);  fake.cat[cl]  = 0;
+    size_t nl = strlen(name);
+    if (nl >= MAX_ARG_KEY_LEN) nl = MAX_ARG_KEY_LEN - 1;
+    memcpy(fake.name, name, nl);  fake.name[nl] = 0;
+
+    fprintf(stderr,
+            "WARNING: synthesising E event '%s' on pid=%" PRIu64 " tid=%" PRIu64
+            " to close orphaned B event\n", name, pid, tid);
+
+    /* Update depth stack */
+    DepthEntry *e = depth_find_or_insert(pid, tid);
+    if (e->depth > 0) e->depth--;
+
+    if (g_opt_debug) {
+        long d = depth_find_or_insert(pid, tid)->depth;
+        debug_print_event(&fake, d + 1);
+    }
+    emit_event(&fake);
+    g_events_read++;
+    g_events_written++;
+}
+
 static void dispatch_event(FxtEvent *ev) {
     if (ev->etype == -1) {
         /* Metadata 'M': register process/thread name */
@@ -918,10 +937,56 @@ static void dispatch_event(FxtEvent *ev) {
     if (ev->etype == -2) return;  /* unknown phase – skip silently */
 
     /* Track B/E call-stack depth per thread */
-    if (ev->etype == 2)       /* Duration begin */
+    if (ev->etype == 2) {      /* Duration begin */
         depth_push(ev->pid, ev->tid, ev->name);
-    else if (ev->etype == 3)  /* Duration end */
-        depth_pop(ev->pid, ev->tid, ev->name);
+    } else if (ev->etype == 3) {  /* Duration end */
+        DepthEntry *_de = depth_find_or_insert(ev->pid, ev->tid);
+        if (_de->depth <= 0) {
+            /* Stack already empty – warn and ignore */
+            fprintf(stderr,
+                    "WARNING: unmatched E event '%s' on pid=%" PRIu64
+                    " tid=%" PRIu64 " (depth would go negative)\n",
+                    ev->name, ev->pid, ev->tid);
+            return;
+        } else {
+            /* Check if the top of stack matches */
+            long _top = _de->depth - 1;
+            if (_top < DEPTH_STACK_MAX &&
+                strcmp(_de->names[_top], ev->name) == 0) {
+                /* Perfect match – normal pop */
+                _de->depth--;
+            } else {
+                /* Mismatch: search downward for a matching frame */
+                long _found = -1;
+                for (long _i = _top - 1; _i >= 0; _i--) {
+                    if (_i < DEPTH_STACK_MAX &&
+                        strcmp(_de->names[_i], ev->name) == 0) {
+                        _found = _i;
+                        break;
+                    }
+                }
+                if (_found >= 0) {
+                    /* Synthesise E events for all frames above the match */
+                    for (long _i = _top; _i > _found; _i--) {
+                        const char *_orphan = (_i < DEPTH_STACK_MAX)
+                                              ? _de->names[_i] : "?";
+                        emit_synthetic_e(ev->pid, ev->tid, ev->ts_ns,
+                                         ev->cat, _orphan);
+                    }
+                    /* Now pop the matching frame */
+                    _de->depth--;
+                } else {
+                    /* Not found anywhere in the stack – warn and ignore */
+                    fprintf(stderr,
+                            "WARNING: E event '%s' on pid=%" PRIu64
+                            " tid=%" PRIu64
+                            " does not match any open B event\n",
+                            ev->name, ev->pid, ev->tid);
+                    return;
+                }
+            }
+        }
+    }
 
     if (g_opt_debug) {
         long d = depth_find_or_insert(ev->pid, ev->tid)->depth;
