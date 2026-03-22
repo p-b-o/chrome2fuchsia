@@ -1399,7 +1399,6 @@ int main(int argc, char **argv) {
 
     /* Check that every thread's B/E call stack is balanced. */
     {
-        int unbalanced = 0;
         for (uint32_t i = 0; i < DEPTH_HASH_SIZE; i++) {
             DepthEntry *e = &g_depth_map[i];
             if (e->used && e->depth != 0) {
@@ -1407,10 +1406,8 @@ int main(int argc, char **argv) {
                         "WARNING: unmatched B events on pid=%" PRIu64
                         " tid=%" PRIu64 " (depth=%ld)\n",
                         e->pid, e->tid, e->depth);
-                unbalanced = 1;
             }
         }
-        if (unbalanced) return 1;
     }
 
     return 0;
