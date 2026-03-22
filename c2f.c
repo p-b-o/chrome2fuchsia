@@ -1298,13 +1298,64 @@ int main(int argc, char **argv) {
     yajl_config(yh, yajl_allow_comments, 1);
 
 
+    /*
+     * Read stdin through a trailing-comma filter before feeding yajl.
+     *
+     * Some Chrome trace writers emit invalid JSON with a trailing comma after
+     * the last element of an array or object, e.g.:
+     *   {"traceEvents": [ {...}, {...}, ]}
+     *                                  ^-- illegal
+     *
+     * The filter uses a one-byte look-ahead: when a ',' is seen, it is held
+     * back.  If the next non-whitespace character is ']' or '}' the comma is
+     * silently dropped; otherwise the comma is flushed before the new byte.
+     * Whitespace between a held comma and the closing bracket is passed
+     * through normally (it goes to yajl after the comma is dropped).
+     */
     unsigned char ibuf[65536];
+    unsigned char fbuf[65536]; /* filtered output fed to yajl */
     size_t got = 0;
     yajl_status yst = yajl_status_ok;
-    while ((got = fread(ibuf, 1, sizeof(ibuf), stdin)) > 0) {
-        yst = yajl_parse(yh, ibuf, got);
-        if (yst != yajl_status_ok) break;
+    int comma_held = 0; /* 1 if a ',' is buffered */
+
+    for (;;) {
+        got = fread(ibuf, 1, sizeof(ibuf), stdin);
+        if (got == 0) break;
+
+        size_t flen = 0;
+        for (size_t i = 0; i < got; i++) {
+            unsigned char ch = ibuf[i];
+            if (comma_held) {
+                if (ch == ']' || ch == '}') {
+                    /* Drop the held comma – it was trailing */
+                    comma_held = 0;
+                    fbuf[flen++] = ch;
+                } else if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') {
+                    /* Whitespace after comma: pass through but keep holding comma */
+                    fbuf[flen++] = ch;
+                } else if (ch == ',') {
+                    /* Two commas in a row: flush the first, hold the new one */
+                    fbuf[flen++] = ',';
+                    /* comma_held stays 1 */
+                } else {
+                    /* Non-whitespace, non-bracket: flush comma then the char */
+                    fbuf[flen++] = ',';
+                    comma_held = 0;
+                    fbuf[flen++] = ch;
+                }
+            } else {
+                if (ch == ',') comma_held = 1;
+                else           fbuf[flen++] = ch;
+            }
+        }
+
+        if (flen > 0) {
+            yst = yajl_parse(yh, fbuf, flen);
+            if (yst != yajl_status_ok) break;
+        }
     }
+    /* Flush any held comma at EOF (it would be trailing – drop it) */
+    /* comma_held at EOF means trailing comma: silently discard */
     if (yst == yajl_status_ok)
         yst = yajl_complete_parse(yh);
 
